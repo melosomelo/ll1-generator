@@ -18,26 +18,14 @@ function makeNonTerminal(value: string): GrammarSymbol {
 
 describe("ParseTableGenerator", () => {
   describe("constructor", () => {
-    it("should thrown when grammar has terminal for lhs of production", () => {
-      expect(
-        () =>
-          new ParseTableGenerator({
-            startingSymbol: "A",
-            productions: [
-              [makeNonTerminal("A"), [makeTerminal("a")]],
-              [makeTerminal("a"), [makeTerminal("a"), makeTerminal("a")]],
-            ],
-          })
-      ).toThrow();
-    });
     it("should throw when using EOI unique symbol in rhs of production", () => {
       expect(
         () =>
           new ParseTableGenerator({
             startingSymbol: "A",
             productions: [
-              [makeNonTerminal("A"), [EOI]],
-              [makeNonTerminal("A"), [makeNonTerminal("A"), makeTerminal("a")]],
+              ["A", [EOI]],
+              ["A", [makeNonTerminal("A"), makeTerminal("a")]],
             ],
           })
       ).toThrow();
@@ -50,6 +38,17 @@ describe("ParseTableGenerator", () => {
         productions: [],
       });
       expect(generator.generateTable()).toEqual({});
+    });
+    it("should calculate properly for grammar with a single rule", () => {
+      const generator = new ParseTableGenerator({
+        startingSymbol: "A",
+        productions: [["A", [makeTerminal("a")]]],
+      });
+      expect(generator.generateTable()).toEqual({
+        A: {
+          a: "a",
+        },
+      });
     });
   });
 });

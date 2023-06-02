@@ -2,9 +2,8 @@ import assert from "assert";
 import { EMPTY_STRING, EOI } from "./symbols";
 
 export default class ParseTableGenerator {
-  private nullableSymbols = new Set<string>();
-  private firsts = new Map<string, Set<string>>();
-  private follows = new Map<string, Set<string>>();
+  private firsts = new Map<string, Set<string | Symbol>>();
+  private follows = new Map<string, Set<string | Symbol>>();
   private grammar: CFGrammar;
 
   public constructor(G: CFGrammar) {
@@ -13,18 +12,14 @@ export default class ParseTableGenerator {
   }
 
   public generateTable(): ParseTable {
-    this.calculateNullables();
-    return {};
+    const t: ParseTable = {};
+    this.generateFirsts();
+    // this.generateFollows();
+    return t;
   }
 
   private validateGrammar(G: CFGrammar): void {
     G.productions.forEach((rule, i) => {
-      assert(
-        rule[0].type !== "TERMINAL",
-        new TypeError(
-          `Invalid context-free grammar. Production number ${i} has a terminal on its left-hand side.`
-        )
-      );
       assert(
         rule[1].every((symbol) => symbol !== EOI),
         `Cannot use EOI symbol in right-hand side of productions.`
@@ -32,31 +27,65 @@ export default class ParseTableGenerator {
     });
   }
 
-  private calculateNullables() {
+  private generateFirsts() {
     let sizeBefore = 0,
       sizeAfter = 0;
     do {
-      sizeBefore = this.nullableSymbols.size;
+      sizeBefore = Array.from(this.firsts.values()).reduce(
+        (prev, curr) => prev + curr.size,
+        0
+      );
       this.grammar.productions.forEach((rule) => {
         const [lhs, rhs] = rule;
-        if (rhs.every((symbol) => this.isNullable(symbol)))
-          this.nullableSymbols.add(lhs.value);
+        const terminals = this.calculateFirst(rhs);
+        Array.from(terminals).forEach((symbol) =>
+          this.getCalculatedFirst(lhs).add(symbol)
+        );
       });
-      sizeAfter = this.nullableSymbols.size;
-    } while (sizeAfter > sizeBefore);
+      sizeAfter = Array.from(this.firsts.values()).reduce(
+        (prev, curr) => prev + curr.size,
+        0
+      );
+    } while (sizeBefore < sizeAfter);
   }
 
-  private isNullable(sententialForm: RHSSymbol): boolean {
-    if (this.isGrammarSymbol(sententialForm)) {
+  private calculateFirst(string: Array<RHSSymbol>): Set<string | Symbol> {
+    let allNullable = true;
+    let result = new Set<string | Symbol>();
+    for (let symbol of string) {
+      if (!this.isNullable(symbol)) {
+        allNullable = false;
+        // This type assertion is valid because:
+        //  1. firstSet is only called after the method validateGrammar,
+        //     which guarantees there's no EOI symbols on any right-hand side.
+        //  2. And if there are no EOI symbols and `symbol` is NOT nullable,
+        //     then it must be of type GrammarSymbol.
+        let gSymbol = symbol as GrammarSymbol;
+        if (gSymbol.type === "TERMINAL") result.add(gSymbol.value);
+        else result = this.getCalculatedFirst(gSymbol.value);
+      }
+    }
+    if (allNullable) result.add(EMPTY_STRING);
+    return result;
+  }
+
+  private isNullable(symbol: RHSSymbol): boolean {
+    if (this.isGrammarSymbol(symbol)) {
       return (
-        sententialForm.type !== "TERMINAL" &&
-        this.nullableSymbols.has(sententialForm.value)
+        symbol.type !== "TERMINAL" &&
+        this.getCalculatedFirst(symbol.value).has(EMPTY_STRING)
       );
     }
-    return sententialForm === EMPTY_STRING;
+    return symbol === EMPTY_STRING;
   }
 
   private isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
     return typeof symbol !== "symbol";
+  }
+
+  private getCalculatedFirst(nonTerminal: string): Set<string | Symbol> {
+    if (this.firsts.get(nonTerminal) === undefined)
+      this.firsts.set(nonTerminal, new Set());
+    return this.firsts.get(nonTerminal) as Set<string | Symbol>;
   }
 }
