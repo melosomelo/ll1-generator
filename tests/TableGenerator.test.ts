@@ -43,4 +43,13 @@ describe("ParseTableGenerator", () => {
       ).toThrow();
     });
   });
+  describe("generateTable", () => {
+    it("should return empty table when grammar has no productions", () => {
+      const generator = new ParseTableGenerator({
+        startingSymbol: "A",
+        productions: [],
+      });
+      expect(generator.generateTable()).toEqual({});
+    });
+  });
 });

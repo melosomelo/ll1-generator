@@ -1,5 +1,5 @@
 import assert from "assert";
-import { EOI } from "./symbols";
+import { EMPTY_STRING, EOI } from "./symbols";
 
 export default class ParseTableGenerator {
   private nullableSymbols = new Set<string>();
@@ -13,6 +13,7 @@ export default class ParseTableGenerator {
   }
 
   public generateTable(): ParseTable {
+    this.calculateNullables();
     return {};
   }
 
@@ -29,5 +30,33 @@ export default class ParseTableGenerator {
         `Cannot use EOI symbol in right-hand side of productions.`
       );
     });
+  }
+
+  private calculateNullables() {
+    let sizeBefore = 0,
+      sizeAfter = 0;
+    do {
+      sizeBefore = this.nullableSymbols.size;
+      this.grammar.productions.forEach((rule) => {
+        const [lhs, rhs] = rule;
+        if (rhs.every((symbol) => this.isNullable(symbol)))
+          this.nullableSymbols.add(lhs.value);
+      });
+      sizeAfter = this.nullableSymbols.size;
+    } while (sizeAfter > sizeBefore);
+  }
+
+  private isNullable(sententialForm: RHSSymbol): boolean {
+    if (this.isGrammarSymbol(sententialForm)) {
+      return (
+        sententialForm.type !== "TERMINAL" &&
+        this.nullableSymbols.has(sententialForm.value)
+      );
+    }
+    return sententialForm === EMPTY_STRING;
+  }
+
+  private isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
+    return typeof symbol !== "symbol";
   }
 }
