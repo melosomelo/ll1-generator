@@ -31,10 +31,7 @@ export default class ParseTableGenerator {
     let sizeBefore = 0,
       sizeAfter = 0;
     do {
-      sizeBefore = Array.from(this.firsts.values()).reduce(
-        (prev, curr) => prev + curr.size,
-        0
-      );
+      sizeBefore = this.sumSizesOfSetsInMap(this.firsts);
       this.grammar.productions.forEach((rule) => {
         const [lhs, rhs] = rule;
         const terminals = this.calculateFirst(rhs);
@@ -42,10 +39,7 @@ export default class ParseTableGenerator {
           this.getCalculatedFirst(lhs).add(symbol)
         );
       });
-      sizeAfter = Array.from(this.firsts.values()).reduce(
-        (prev, curr) => prev + curr.size,
-        0
-      );
+      sizeAfter = this.sumSizesOfSetsInMap(this.firsts);
     } while (sizeBefore < sizeAfter);
   }
 
@@ -87,5 +81,12 @@ export default class ParseTableGenerator {
     if (this.firsts.get(nonTerminal) === undefined)
       this.firsts.set(nonTerminal, new Set());
     return this.firsts.get(nonTerminal) as Set<string | Symbol>;
+  }
+
+  private sumSizesOfSetsInMap(map: Map<string, Set<any>>) {
+    return Array.from(map.values()).reduce(
+      (prev, current) => prev + current.size,
+      0
+    );
   }
 }
