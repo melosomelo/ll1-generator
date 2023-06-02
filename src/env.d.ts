@@ -1,12 +1,15 @@
-type GrammarSymbolType = "TERMINAL" | "NON-TERMINAL" | "EMPTY";
-
 interface GrammarSymbol {
-  type: GrammarSymbolType;
+  type: "TERMINAL" | "NONTERMINAL";
   value: string;
 }
 
-type CFProduction = [GrammarSymbol, Array<GrammarSymbol>];
+type RHSSymbol = GrammarSymbol | Symbol;
 
-type CFGrammar = Array<CFProduction>;
+type CFProduction = [GrammarSymbol, Array<RHSSymbol>];
 
-type ParseTable = Record<string, Record<string, Array<GrammarSymbol>>>;
+interface CFGrammar {
+  productions: Array<CFProduction>;
+  startingSymbol: string;
+}
+
+type ParseTable = Record<string, Record<string, Array<RHSSymbol>>>;

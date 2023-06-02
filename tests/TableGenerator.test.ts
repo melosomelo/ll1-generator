@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
 import ParseTableGenerator from "../src/TableGenerator";
+import { EMPTY_STRING, EOI } from "../src/symbols";
 
 function makeTerminal(value: string): GrammarSymbol {
   return {
@@ -10,15 +11,8 @@ function makeTerminal(value: string): GrammarSymbol {
 
 function makeNonTerminal(value: string): GrammarSymbol {
   return {
-    type: "NON-TERMINAL",
+    type: "NONTERMINAL",
     value,
-  };
-}
-
-function makeEmpty(): GrammarSymbol {
-  return {
-    type: "EMPTY",
-    value: "",
   };
 }
 
@@ -27,29 +21,26 @@ describe("ParseTableGenerator", () => {
     it("should thrown when grammar has terminal for lhs of production", () => {
       expect(
         () =>
-          new ParseTableGenerator([
-            [makeNonTerminal("A"), [makeTerminal("a")]],
-            [makeTerminal("a"), [makeTerminal("a"), makeTerminal("a")]],
-          ])
+          new ParseTableGenerator({
+            startingSymbol: "A",
+            productions: [
+              [makeNonTerminal("A"), [makeTerminal("a")]],
+              [makeTerminal("a"), [makeTerminal("a"), makeTerminal("a")]],
+            ],
+          })
       ).toThrow();
     });
-    it("should throw when grammar has empty string for lhs of production", () => {
+    it("should throw when using EOI unique symbol in rhs of production", () => {
       expect(
         () =>
-          new ParseTableGenerator([
-            [makeEmpty(), [makeTerminal("a")]],
-            [makeNonTerminal("A"), [makeTerminal("a")]],
-          ])
+          new ParseTableGenerator({
+            startingSymbol: "A",
+            productions: [
+              [makeNonTerminal("A"), [EOI]],
+              [makeNonTerminal("A"), [makeNonTerminal("A"), makeTerminal("a")]],
+            ],
+          })
       ).toThrow();
-    });
-  });
-  describe("generateTable", () => {
-    let tableGenerator = new ParseTableGenerator([]);
-    beforeEach(() => {
-      tableGenerator = new ParseTableGenerator([]);
-    });
-    it("should return empty parse table when grammar is empty", () => {
-      expect(tableGenerator.generateTable()).toEqual({});
     });
   });
 });
