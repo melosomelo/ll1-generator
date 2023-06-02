@@ -1,8 +1,7 @@
 {
   "extends": "@tsconfig/node18/tsconfig.json",
-  "include": ["src/**/*"],
+  "include": ["./src/**/*", "./tests/**/*"],
   "compilerOptions": {
-    "rootDir": "src",
     "outDir": "build"
   }
 }
