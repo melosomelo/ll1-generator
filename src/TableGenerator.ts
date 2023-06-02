@@ -15,6 +15,7 @@ export default class ParseTableGenerator {
     const t: ParseTable = {};
     this.generateFirsts();
     // this.generateFollows();
+    this.fillTable(t);
     return t;
   }
 
@@ -57,10 +58,20 @@ export default class ParseTableGenerator {
         let gSymbol = symbol as GrammarSymbol;
         if (gSymbol.type === "TERMINAL") result.add(gSymbol.value);
         else result = this.getCalculatedFirst(gSymbol.value);
+        break;
       }
     }
     if (allNullable) result.add(EMPTY_STRING);
     return result;
+  }
+
+  private fillTable(t: ParseTable) {
+    this.grammar.productions.forEach((rule) => {
+      const [lhs, rhs] = rule;
+      t[lhs] = t[lhs] ?? {};
+      const terminals = this.calculateFirst(rhs);
+      terminals.forEach((a) => (t[lhs][a as string] = rhs));
+    });
   }
 
   private isNullable(symbol: RHSSymbol): boolean {
