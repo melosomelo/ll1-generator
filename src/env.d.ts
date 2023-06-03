@@ -19,4 +19,7 @@ interface CFGrammar {
   startingSymbol: string;
 }
 
-type ParseTable = Record<string, Record<string, Array<RHSSymbol>>>;
+type ParseTable = Record<
+  string,
+  Record<string | unique symbol, Array<RHSSymbol>>
+>;

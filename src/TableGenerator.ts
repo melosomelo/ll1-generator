@@ -14,7 +14,7 @@ export default class ParseTableGenerator {
   public generateTable(): ParseTable {
     const t: ParseTable = {};
     this.generateFirsts();
-    // this.generateFollows();
+    this.generateFollows();
     this.fillTable(t);
     return t;
   }
@@ -28,7 +28,7 @@ export default class ParseTableGenerator {
     });
   }
 
-  private generateFirsts() {
+  private generateFirsts(): void {
     let sizeBefore = 0,
       sizeAfter = 0;
     do {
@@ -65,12 +65,54 @@ export default class ParseTableGenerator {
     return result;
   }
 
+  private generateFollows(): void {
+    this.follows.set(this.grammar.startingSymbol, new Set());
+    this.follows.get(this.grammar.startingSymbol)!.add(EOI);
+    let sizeBefore = 1,
+      sizeAfter = 1;
+    do {
+      sizeBefore = this.sumSizesOfSetsInMap(this.follows);
+      this.grammar.productions.forEach((rule) => {
+        const [lhs, rhs] = rule;
+        rhs.forEach((symbol, i, array) => {
+          if (this.isGrammarSymbol(symbol)) {
+            if (symbol.type === "TERMINAL") return;
+            const rightOfSymbol = array.slice(i + 1);
+            const firstsOfRight = this.calculateFirst(rightOfSymbol);
+            firstsOfRight.delete(EMPTY_STRING);
+            Array.from(firstsOfRight).forEach((symbol2) =>
+              this.getCalculatedFollow(symbol.value).add(symbol2)
+            );
+            if (
+              i === array.length - 1 ||
+              this.calculateFirst(rightOfSymbol).has(EMPTY_STRING)
+            ) {
+              Array.from(this.getCalculatedFollow(lhs)).forEach((symbol2) =>
+                this.getCalculatedFollow(symbol.value).add(symbol2)
+              );
+            }
+          }
+        });
+      });
+      sizeAfter = this.sumSizesOfSetsInMap(this.follows);
+    } while (sizeBefore < sizeAfter);
+  }
+
   private fillTable(t: ParseTable) {
     this.grammar.productions.forEach((rule) => {
       const [lhs, rhs] = rule;
       t[lhs] = t[lhs] ?? {};
-      const terminals = this.calculateFirst(rhs);
-      terminals.forEach((a) => (t[lhs][a as string] = rhs));
+      const rhsFirst = this.calculateFirst(rhs);
+      rhsFirst.forEach((symbol) => {
+        if (typeof symbol !== "symbol") {
+          t[lhs][symbol as string] = rhs;
+        }
+      });
+      if (rhsFirst.has(EMPTY_STRING)) {
+        const lhsFollow = this.getCalculatedFollow(lhs);
+        lhsFollow.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
+        if (lhsFollow.has(EOI)) t[lhs][EOI] = rhs;
+      }
     });
   }
 
@@ -92,6 +134,12 @@ export default class ParseTableGenerator {
     if (this.firsts.get(nonTerminal) === undefined)
       this.firsts.set(nonTerminal, new Set());
     return this.firsts.get(nonTerminal) as Set<string | Symbol>;
+  }
+
+  private getCalculatedFollow(nonTerminal: string): Set<string | Symbol> {
+    if (this.follows.get(nonTerminal) === undefined)
+      this.follows.set(nonTerminal, new Set());
+    return this.follows.get(nonTerminal) as Set<string | Symbol>;
   }
 
   private sumSizesOfSetsInMap(map: Map<string, Set<any>>) {

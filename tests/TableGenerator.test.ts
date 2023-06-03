@@ -18,7 +18,7 @@ function makeNonTerminal(value: string): GrammarSymbol {
 
 describe("ParseTableGenerator", () => {
   describe("constructor", () => {
-    it("should throw when using EOI unique symbol in rhs of production", () => {
+    it("error when using EOI unique symbol in rhs of production", () => {
       expect(
         () =>
           new ParseTableGenerator({
@@ -128,6 +128,53 @@ describe("ParseTableGenerator", () => {
         B: {
           a: [makeTerminal("a"), makeNonTerminal("B"), makeTerminal("b")],
           b: [makeTerminal("b")],
+        },
+      });
+    });
+    it("full ll1 grammar", () => {
+      // Grammar taken from the "Dragon Book", pg. 225
+      const generator = new ParseTableGenerator({
+        startingSymbol: "E",
+        productions: [
+          ["E", [makeNonTerminal("T"), makeNonTerminal("E'")]],
+          [
+            "E'",
+            [makeTerminal("+"), makeNonTerminal("T"), makeNonTerminal("E'")],
+          ],
+          ["E'", [EMPTY_STRING]],
+          ["T", [makeNonTerminal("F"), makeNonTerminal("T'")]],
+          [
+            "T'",
+            [makeTerminal("*"), makeNonTerminal("F"), makeNonTerminal("T'")],
+          ],
+          ["T'", [EMPTY_STRING]],
+          ["F", [makeTerminal("("), makeNonTerminal("E"), makeTerminal(")")]],
+          ["F", [makeTerminal("id")]],
+        ],
+      });
+      expect(generator.generateTable()).toEqual({
+        E: {
+          id: [makeNonTerminal("T"), makeNonTerminal("E'")],
+          "(": [makeNonTerminal("T"), makeNonTerminal("E'")],
+        },
+        "E'": {
+          "+": [makeTerminal("+"), makeNonTerminal("T"), makeNonTerminal("E'")],
+          ")": [EMPTY_STRING],
+          [EOI]: [EMPTY_STRING],
+        },
+        T: {
+          id: [makeNonTerminal("F"), makeNonTerminal("T'")],
+          "(": [makeNonTerminal("F"), makeNonTerminal("T'")],
+        },
+        "T'": {
+          "+": [EMPTY_STRING],
+          "*": [makeTerminal("*"), makeNonTerminal("F"), makeNonTerminal("T'")],
+          ")": [EMPTY_STRING],
+          [EOI]: [EMPTY_STRING],
+        },
+        F: {
+          id: [makeTerminal("id")],
+          "(": [makeTerminal("("), makeNonTerminal("E"), makeTerminal(")")],
         },
       });
     });
