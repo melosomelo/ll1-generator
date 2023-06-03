@@ -39,7 +39,7 @@ describe("ParseTableGenerator", () => {
       });
       expect(generator.generateTable()).toEqual({});
     });
-    it("grammar with a single rule", () => {
+    it("grammar with a single non epsilon-rule", () => {
       const generator = new ParseTableGenerator({
         startingSymbol: "A",
         productions: [["A", [makeTerminal("a")]]],
@@ -108,6 +108,26 @@ describe("ParseTableGenerator", () => {
         B: {
           b: [makeTerminal("b"), makeNonTerminal("B")],
           c: [makeTerminal("c")],
+        },
+      });
+    });
+    it("grammar without epsilon-rules 3", () => {
+      // Taken from Parsing Techniques - A Practical Guade pg.238
+      const generator = new ParseTableGenerator({
+        startingSymbol: "S",
+        productions: [
+          ["S", [makeTerminal("a"), makeNonTerminal("B")]],
+          ["B", [makeTerminal("b")]],
+          ["B", [makeTerminal("a"), makeNonTerminal("B"), makeTerminal("b")]],
+        ],
+      });
+      expect(generator.generateTable()).toEqual({
+        S: {
+          a: [makeTerminal("a"), makeNonTerminal("B")],
+        },
+        B: {
+          a: [makeTerminal("a"), makeNonTerminal("B"), makeTerminal("b")],
+          b: [makeTerminal("b")],
         },
       });
     });
