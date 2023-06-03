@@ -32,14 +32,14 @@ describe("ParseTableGenerator", () => {
     });
   });
   describe("generateTable", () => {
-    it("should return empty table when grammar has no productions", () => {
+    it("empty grammar", () => {
       const generator = new ParseTableGenerator({
         startingSymbol: "A",
         productions: [],
       });
       expect(generator.generateTable()).toEqual({});
     });
-    it("should calculate properly for grammar with a single rule", () => {
+    it("grammar with a single rule", () => {
       const generator = new ParseTableGenerator({
         startingSymbol: "A",
         productions: [["A", [makeTerminal("a")]]],
@@ -50,7 +50,7 @@ describe("ParseTableGenerator", () => {
         },
       });
     });
-    it("should calculate properly for grammar without epsilon-rules", () => {
+    it("grammar without epsilon-rules", () => {
       // Grammar taken from the book Parsing Techniques - A Practical Guide pg.240
       const generator = new ParseTableGenerator({
         startingSymbol: "S",
@@ -86,6 +86,28 @@ describe("ParseTableGenerator", () => {
         },
         F: {
           "!": [makeTerminal("!"), makeTerminal("STRING")],
+        },
+      });
+    });
+    it("grammar without epsilon-rules 2", () => {
+      const generator = new ParseTableGenerator({
+        startingSymbol: "A",
+        productions: [
+          ["A", [makeTerminal("a"), makeNonTerminal("A")]],
+          ["A", [makeNonTerminal("B")]],
+          ["B", [makeTerminal("b"), makeNonTerminal("B")]],
+          ["B", [makeTerminal("c")]],
+        ],
+      });
+      expect(generator.generateTable()).toEqual({
+        A: {
+          a: [makeTerminal("a"), makeNonTerminal("A")],
+          b: [makeNonTerminal("B")],
+          c: [makeNonTerminal("B")],
+        },
+        B: {
+          b: [makeTerminal("b"), makeNonTerminal("B")],
+          c: [makeTerminal("c")],
         },
       });
     });
