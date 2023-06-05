@@ -9,13 +9,15 @@ export default class ParseTableGenerator {
   public constructor(G: CFGrammar) {
     this.validateGrammar(G);
     this.grammar = G;
+    this.generateFirsts();
+  }
+
+  public firstSet(nonTerminal: string): Set<string | Symbol> {
+    return this.getFirst(nonTerminal);
   }
 
   public generateTable(): ParseTable {
     const t: ParseTable = {};
-    this.generateFirsts();
-    this.generateFollows();
-    this.fillTable(t);
     return t;
   }
 
@@ -35,29 +37,29 @@ export default class ParseTableGenerator {
       sizeBefore = this.sumSizesOfSetsInMap(this.firsts);
       this.grammar.productions.forEach((rule) => {
         const [lhs, rhs] = rule;
-        const terminals = this.calculateFirst(rhs);
-        Array.from(terminals).forEach((symbol) =>
-          this.getCalculatedFirst(lhs).add(symbol)
-        );
+        const rhsFirst = this.calculateFirstSet(rhs);
+        this.addToFirstSet(lhs, rhsFirst);
       });
       sizeAfter = this.sumSizesOfSetsInMap(this.firsts);
     } while (sizeBefore < sizeAfter);
   }
 
-  private calculateFirst(string: Array<RHSSymbol>): Set<string | Symbol> {
+  private calculateFirstSet(
+    sententialForm: Array<RHSSymbol>
+  ): Set<string | Symbol> {
     let allNullable = true;
     let result = new Set<string | Symbol>();
-    for (let symbol of string) {
+    for (let symbol of sententialForm) {
       if (!this.isNullable(symbol)) {
         allNullable = false;
         // This type assertion is valid because:
-        //  1. firstSet is only called after the method validateGrammar,
+        //  1. This function is only called after the method validateGrammar,
         //     which guarantees there's no EOI symbols on any right-hand side.
         //  2. And if there are no EOI symbols and `symbol` is NOT nullable,
         //     then it must be of type GrammarSymbol.
         let gSymbol = symbol as GrammarSymbol;
         if (gSymbol.type === "TERMINAL") result.add(gSymbol.value);
-        else result = this.getCalculatedFirst(gSymbol.value);
+        else result = new Set(this.getFirst(gSymbol.value));
         break;
       }
     }
@@ -65,49 +67,27 @@ export default class ParseTableGenerator {
     return result;
   }
 
-  private generateFollows(): void {
-    this.follows.set(this.grammar.startingSymbol, new Set());
-    this.follows.get(this.grammar.startingSymbol)!.add(EOI);
-    let sizeBefore = 1,
-      sizeAfter = 1;
-    do {
-      sizeBefore = this.sumSizesOfSetsInMap(this.follows);
-      this.grammar.productions.forEach((rule) => {
-        const [lhs, rhs] = rule;
-        rhs.forEach((symbol, i, array) => {
-          if (this.isGrammarSymbol(symbol)) {
-            if (symbol.type === "TERMINAL") return;
-            const rightOfSymbol = array.slice(i + 1);
-            const firstsOfRight = this.calculateFirst(rightOfSymbol);
-            firstsOfRight.delete(EMPTY_STRING);
-            Array.from(firstsOfRight).forEach((symbol2) =>
-              this.getCalculatedFollow(symbol.value).add(symbol2)
-            );
-            if (
-              i === array.length - 1 ||
-              this.calculateFirst(rightOfSymbol).has(EMPTY_STRING)
-            ) {
-              Array.from(this.getCalculatedFollow(lhs)).forEach((symbol2) =>
-                this.getCalculatedFollow(symbol.value).add(symbol2)
-              );
-            }
-          }
-        });
-      });
-      sizeAfter = this.sumSizesOfSetsInMap(this.follows);
-    } while (sizeBefore < sizeAfter);
+  private addToFirstSet(key: string, newValues: Set<any>) {
+    const receiver = this.getFirst(key);
+    newValues.forEach((value) => receiver.add(value));
   }
 
   private fillTable(t: ParseTable) {
     this.grammar.productions.forEach((rule) => {
+      // Production A -> α
       const [lhs, rhs] = rule;
       t[lhs] = t[lhs] ?? {};
-      const rhsFirst = this.calculateFirst(rhs);
-      rhsFirst.forEach((symbol) => {
-        if (typeof symbol !== "symbol") {
-          t[lhs][symbol as string] = rhs;
+      // For every terminal a in First(α),
+      // set the entry [A,a] to α
+      // [TODO] deal with conflicts
+      const rhsFirst = this.calculateFirstSet(rhs);
+      rhsFirst.forEach((terminal) => {
+        if (typeof terminal !== "symbol") {
+          t[lhs][terminal as string] = rhs;
         }
       });
+      // If ε ∈ First(α), then for every terminal b in
+      // Follow(A), set the entry [A,b] to α.
       if (rhsFirst.has(EMPTY_STRING)) {
         const lhsFollow = this.getCalculatedFollow(lhs);
         lhsFollow.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
@@ -120,7 +100,7 @@ export default class ParseTableGenerator {
     if (this.isGrammarSymbol(symbol)) {
       return (
         symbol.type !== "TERMINAL" &&
-        this.getCalculatedFirst(symbol.value).has(EMPTY_STRING)
+        this.getFirst(symbol.value).has(EMPTY_STRING)
       );
     }
     return symbol === EMPTY_STRING;
@@ -130,7 +110,12 @@ export default class ParseTableGenerator {
     return typeof symbol !== "symbol";
   }
 
-  private getCalculatedFirst(nonTerminal: string): Set<string | Symbol> {
+  /**
+   * Safely retrieves the current value for the First set of the parameter.
+   * @param nonTerminal
+   * @returns The First set for the nonTerminal parameter.
+   */
+  private getFirst(nonTerminal: string): Set<string | Symbol> {
     if (this.firsts.get(nonTerminal) === undefined)
       this.firsts.set(nonTerminal, new Set());
     return this.firsts.get(nonTerminal) as Set<string | Symbol>;
