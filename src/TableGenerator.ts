@@ -10,14 +10,30 @@ export default class ParseTableGenerator {
     this.validateGrammar(G);
     this.grammar = G;
     this.generateFirsts();
+    this.generateFollows();
   }
 
   public firstSet(nonTerminal: string): Set<string | Symbol> {
-    return this.getFirst(nonTerminal);
+    return new Set(this.getFirst(nonTerminal));
+  }
+
+  public followSet(nonTerminal: string): Set<string | Symbol> {
+    return new Set(this.getFollow(nonTerminal));
   }
 
   public generateTable(): ParseTable {
     const t: ParseTable = {};
+    this.grammar.productions.forEach((rule) => {
+      const [lhs, rhs] = rule;
+      t[lhs] = t[lhs] ?? {};
+      const rhsFirst = this.calculateFirstSet(rhs);
+      if (rhsFirst.has(EMPTY_STRING)) {
+        const lhsFollow = this.getFollow(lhs);
+        lhsFollow.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
+      }
+      rhsFirst.delete(EMPTY_STRING);
+      rhsFirst.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
+    });
     return t;
   }
 
@@ -47,23 +63,28 @@ export default class ParseTableGenerator {
   private calculateFirstSet(
     sententialForm: Array<RHSSymbol>
   ): Set<string | Symbol> {
-    let allNullable = true;
     let result = new Set<string | Symbol>();
+    result.add(EMPTY_STRING);
+    // We add to the result until we either find a terminal symbol
+    // or we find a non-terminal that is not nullable.
+    // If none of these cases are satisfied, then the sententialForm
+    // parameter is nullable.
     for (let symbol of sententialForm) {
-      if (!this.isNullable(symbol)) {
-        allNullable = false;
-        // This type assertion is valid because:
-        //  1. This function is only called after the method validateGrammar,
-        //     which guarantees there's no EOI symbols on any right-hand side.
-        //  2. And if there are no EOI symbols and `symbol` is NOT nullable,
-        //     then it must be of type GrammarSymbol.
-        let gSymbol = symbol as GrammarSymbol;
-        if (gSymbol.type === "TERMINAL") result.add(gSymbol.value);
-        else result = new Set(this.getFirst(gSymbol.value));
-        break;
+      if (this.isGrammarSymbol(symbol)) {
+        if (symbol.type === "TERMINAL") {
+          result.add(symbol.value);
+          result.delete(EMPTY_STRING);
+          break;
+        } else {
+          const symbolFirst = this.getFirst(symbol.value);
+          symbolFirst.forEach((terminal) => result.add(terminal));
+          if (!symbolFirst.has(EMPTY_STRING)) {
+            result.delete(EMPTY_STRING);
+            break;
+          }
+        }
       }
     }
-    if (allNullable) result.add(EMPTY_STRING);
     return result;
   }
 
@@ -72,56 +93,48 @@ export default class ParseTableGenerator {
     newValues.forEach((value) => receiver.add(value));
   }
 
-  private fillTable(t: ParseTable) {
-    this.grammar.productions.forEach((rule) => {
-      // Production A -> α
-      const [lhs, rhs] = rule;
-      t[lhs] = t[lhs] ?? {};
-      // For every terminal a in First(α),
-      // set the entry [A,a] to α
-      // [TODO] deal with conflicts
-      const rhsFirst = this.calculateFirstSet(rhs);
-      rhsFirst.forEach((terminal) => {
-        if (typeof terminal !== "symbol") {
-          t[lhs][terminal as string] = rhs;
-        }
+  private generateFollows() {
+    this.follows.set(this.grammar.startingSymbol, new Set());
+    this.follows.get(this.grammar.startingSymbol)!.add(EOI);
+    let sizeBefore = 1,
+      sizeAfter = 1;
+    do {
+      sizeBefore = this.sumSizesOfSetsInMap(this.follows);
+      this.grammar.productions.forEach((rule) => {
+        const [lhs, rhs] = rule;
+        rhs.forEach((symbol, i) => {
+          // Follow set is only defined for non-terminals.
+          if (this.isGrammarSymbol(symbol) && symbol.type === "NONTERMINAL") {
+            const symbolsToTheRight = rhs.slice(i + 1);
+            const firstOfRight = this.calculateFirstSet(symbolsToTheRight);
+            if (firstOfRight.has(EMPTY_STRING)) {
+              this.addToFollowSet(symbol.value, this.getFollow(lhs));
+            }
+            firstOfRight.delete(EMPTY_STRING);
+            this.addToFollowSet(symbol.value, firstOfRight);
+          }
+        });
       });
-      // If ε ∈ First(α), then for every terminal b in
-      // Follow(A), set the entry [A,b] to α.
-      if (rhsFirst.has(EMPTY_STRING)) {
-        const lhsFollow = this.getCalculatedFollow(lhs);
-        lhsFollow.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
-        if (lhsFollow.has(EOI)) t[lhs][EOI] = rhs;
-      }
-    });
+      sizeAfter = this.sumSizesOfSetsInMap(this.follows);
+    } while (sizeBefore < sizeAfter);
   }
 
-  private isNullable(symbol: RHSSymbol): boolean {
-    if (this.isGrammarSymbol(symbol)) {
-      return (
-        symbol.type !== "TERMINAL" &&
-        this.getFirst(symbol.value).has(EMPTY_STRING)
-      );
-    }
-    return symbol === EMPTY_STRING;
+  private addToFollowSet(key: string, newValues: Set<any>) {
+    const receiver = this.getFollow(key);
+    newValues.forEach((value) => receiver.add(value));
   }
 
   private isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
     return typeof symbol !== "symbol";
   }
 
-  /**
-   * Safely retrieves the current value for the First set of the parameter.
-   * @param nonTerminal
-   * @returns The First set for the nonTerminal parameter.
-   */
   private getFirst(nonTerminal: string): Set<string | Symbol> {
     if (this.firsts.get(nonTerminal) === undefined)
       this.firsts.set(nonTerminal, new Set());
     return this.firsts.get(nonTerminal) as Set<string | Symbol>;
   }
 
-  private getCalculatedFollow(nonTerminal: string): Set<string | Symbol> {
+  private getFollow(nonTerminal: string): Set<string | Symbol> {
     if (this.follows.get(nonTerminal) === undefined)
       this.follows.set(nonTerminal, new Set());
     return this.follows.get(nonTerminal) as Set<string | Symbol>;
