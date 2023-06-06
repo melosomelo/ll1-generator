@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import CFGrammarBuilder from "../src/CFGrammarBuilder";
+import CFGrammarBuilder from "../src/grammarBuilder";
 import { EMPTY_STRING, EOI, terminal, nonTerminal } from "../src/symbols";
 
 describe("CFGrammarBuilder", () => {

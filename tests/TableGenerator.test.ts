@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import ParseTableGenerator from "../src/TableGenerator";
+import ParseTableGenerator from "../src/tableGenerator";
 import { EMPTY_STRING, EOI } from "../src/symbols";
 
 function makeTerminal(value: string): GrammarSymbol {

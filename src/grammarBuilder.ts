@@ -1,4 +1,4 @@
-import CFGrammar from "./CFGrammar";
+import CFGrammar from "./grammar";
 import { isGrammarSymbol } from "./symbols";
 
 export default class CFGrammarBuilder {

@@ -1,4 +1,3 @@
-import assert from "assert";
 import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 
 export default class ParseTableGenerator {
@@ -7,7 +6,6 @@ export default class ParseTableGenerator {
   private grammar: CFGrammar;
 
   public constructor(G: CFGrammar) {
-    this.validateGrammar(G);
     this.grammar = G;
     this.generateFirsts();
     this.generateFollows();
@@ -35,15 +33,6 @@ export default class ParseTableGenerator {
       rhsFirst.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
     });
     return t;
-  }
-
-  private validateGrammar(G: CFGrammar): void {
-    G.productions.forEach((rule, i) => {
-      assert(
-        rule[1].every((symbol) => symbol !== EOI),
-        `Cannot use EOI symbol in right-hand side of productions.`
-      );
-    });
   }
 
   private generateFirsts(): void {
