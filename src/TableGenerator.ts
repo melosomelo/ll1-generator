@@ -1,5 +1,5 @@
 import assert from "assert";
-import { EMPTY_STRING, EOI } from "./symbols";
+import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 
 export default class ParseTableGenerator {
   private firsts = new Map<string, Set<string | Symbol>>();
@@ -70,7 +70,7 @@ export default class ParseTableGenerator {
     // If none of these cases are satisfied, then the sententialForm
     // parameter is nullable.
     for (let symbol of sententialForm) {
-      if (this.isGrammarSymbol(symbol)) {
+      if (isGrammarSymbol(symbol)) {
         if (symbol.type === "TERMINAL") {
           result.add(symbol.value);
           result.delete(EMPTY_STRING);
@@ -88,12 +88,12 @@ export default class ParseTableGenerator {
     return result;
   }
 
-  private addToFirstSet(key: string, newValues: Set<any>) {
+  private addToFirstSet(key: string, newValues: Set<any>): void {
     const receiver = this.getFirst(key);
     newValues.forEach((value) => receiver.add(value));
   }
 
-  private generateFollows() {
+  private generateFollows(): void {
     this.follows.set(this.grammar.startingSymbol, new Set());
     this.follows.get(this.grammar.startingSymbol)!.add(EOI);
     let sizeBefore = 1,
@@ -104,7 +104,7 @@ export default class ParseTableGenerator {
         const [lhs, rhs] = rule;
         rhs.forEach((symbol, i) => {
           // Follow set is only defined for non-terminals.
-          if (this.isGrammarSymbol(symbol) && symbol.type === "NONTERMINAL") {
+          if (isGrammarSymbol(symbol) && symbol.type === "NONTERMINAL") {
             this.addToFollowSet(
               symbol.value,
               this.calculateFollowSet(lhs, rhs, i)
@@ -132,13 +132,9 @@ export default class ParseTableGenerator {
     return result;
   }
 
-  private addToFollowSet(key: string, newValues: Set<any>) {
+  private addToFollowSet(key: string, newValues: Set<any>): void {
     const receiver = this.getFollow(key);
     newValues.forEach((value) => receiver.add(value));
-  }
-
-  private isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
-    return typeof symbol !== "symbol";
   }
 
   private getFirst(nonTerminal: string): Set<string | Symbol> {
@@ -153,7 +149,7 @@ export default class ParseTableGenerator {
     return this.follows.get(nonTerminal) as Set<string | Symbol>;
   }
 
-  private sumSizesOfSetsInMap(map: Map<string, Set<any>>) {
+  private sumSizesOfSetsInMap(map: Map<string, Set<any>>): number {
     return Array.from(map.values()).reduce(
       (prev, current) => prev + current.size,
       0
