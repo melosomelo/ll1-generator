@@ -105,18 +105,31 @@ export default class ParseTableGenerator {
         rhs.forEach((symbol, i) => {
           // Follow set is only defined for non-terminals.
           if (this.isGrammarSymbol(symbol) && symbol.type === "NONTERMINAL") {
-            const symbolsToTheRight = rhs.slice(i + 1);
-            const firstOfRight = this.calculateFirstSet(symbolsToTheRight);
-            if (firstOfRight.has(EMPTY_STRING)) {
-              this.addToFollowSet(symbol.value, this.getFollow(lhs));
-            }
-            firstOfRight.delete(EMPTY_STRING);
-            this.addToFollowSet(symbol.value, firstOfRight);
+            this.addToFollowSet(
+              symbol.value,
+              this.calculateFollowSet(lhs, rhs, i)
+            );
           }
         });
       });
       sizeAfter = this.sumSizesOfSetsInMap(this.follows);
     } while (sizeBefore < sizeAfter);
+  }
+
+  private calculateFollowSet(
+    lhs: string,
+    rhs: Array<RHSSymbol>,
+    symbolIndex: number
+  ): Set<string | Symbol> {
+    const result = new Set<string | Symbol>();
+    const symbolsToTheRight = rhs.slice(symbolIndex + 1);
+    const firstOfRight = this.calculateFirstSet(symbolsToTheRight);
+    if (firstOfRight.has(EMPTY_STRING)) {
+      this.getFollow(lhs).forEach((symbol) => result.add(symbol));
+    }
+    firstOfRight.delete(EMPTY_STRING);
+    firstOfRight.forEach((symbol) => result.add(symbol));
+    return result;
   }
 
   private addToFollowSet(key: string, newValues: Set<any>) {
