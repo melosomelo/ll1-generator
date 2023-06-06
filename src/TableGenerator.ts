@@ -4,7 +4,7 @@ import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 export default class ParseTableGenerator {
   private firsts = new Map<string, Set<string | Symbol>>();
   private follows = new Map<string, Set<string | Symbol>>();
-  private grammar: CFGrammar;
+  public grammar: CFGrammar;
 
   public constructor(G: CFGrammar) {
     this.validateGrammar(G);
@@ -23,9 +23,9 @@ export default class ParseTableGenerator {
 
   public generateTable(): ParseTable {
     const t: ParseTable = {};
+    this.preFillTable(t);
     this.grammar.productions.forEach((rule) => {
       const [lhs, rhs] = rule;
-      t[lhs] = t[lhs] ?? {};
       const rhsFirst = this.calculateFirstSet(rhs);
       if (rhsFirst.has(EMPTY_STRING)) {
         const lhsFollow = this.getFollow(lhs);
@@ -35,6 +35,14 @@ export default class ParseTableGenerator {
       rhsFirst.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
     });
     return t;
+  }
+
+  private preFillTable(t: ParseTable) {
+    this.grammar.nonTerminals.forEach((symbol) => {
+      t[symbol] = {};
+      this.grammar.terminals.forEach((symbol2) => (t[symbol][symbol2] = null));
+      t[symbol][EOI] = null;
+    });
   }
 
   private validateGrammar(G: CFGrammar) {

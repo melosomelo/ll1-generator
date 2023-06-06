@@ -16,5 +16,5 @@ type CFProduction = [string, Array<RHSSymbol>];
 
 type ParseTable = Record<
   string,
-  Record<string | unique symbol, Array<RHSSymbol>>
+  Record<string | unique symbol, Array<RHSSymbol> | null>
 >;
