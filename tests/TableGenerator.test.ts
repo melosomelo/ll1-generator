@@ -1,61 +1,48 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
+import { EMPTY_STRING, EOI, terminal, nonTerminal } from "../src/symbols";
 import ParseTableGenerator from "../src/tableGenerator";
-import { EMPTY_STRING, EOI } from "../src/symbols";
-
-function makeTerminal(value: string): GrammarSymbol {
-  return {
-    type: "TERMINAL",
-    value,
-  };
-}
-
-function makeNonTerminal(value: string): GrammarSymbol {
-  return {
-    type: "NONTERMINAL",
-    value,
-  };
-}
+import CFGrammarBuilder from "../src/grammarBuilder";
 
 describe("ParseTableGenerator", () => {
   describe("constructor", () => {
     it("error when using EOI unique symbol in rhs of production", () => {
       expect(
         () =>
-          new ParseTableGenerator({
-            startingSymbol: "A",
-            productions: [
-              ["A", [EOI]],
-              ["A", [makeNonTerminal("A"), makeTerminal("a")]],
-            ],
-          })
+          new ParseTableGenerator(
+            new CFGrammarBuilder()
+              .setStartingSymbol("A")
+              .addProduction("A", [EOI])
+              .addProduction("A", [nonTerminal("A"), terminal("a")])
+              .build()
+          )
       ).toThrow();
     });
   });
   describe("firstSet", () => {
     it("First(X) must contain x when X->x... and x is terminal", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeTerminal("a")]],
-          ["B", [makeTerminal("b")]],
-          ["C", [makeTerminal("c")]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [terminal("a")])
+          .addProduction("B", [terminal("b")])
+          .addProduction("C", [terminal("c")])
+          .build()
+      );
       expect(generator.firstSet("A").has("a")).toBeTruthy();
       expect(generator.firstSet("B").has("b")).toBeTruthy();
       expect(generator.firstSet("C").has("c")).toBeTruthy();
     });
     it("First(X) must contain x when X -> x... and X -> y... and both x and y are terminals", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeTerminal("a")]],
-          ["B", [makeTerminal("b")]],
-          ["C", [makeTerminal("c")]],
-          ["A", [makeTerminal("b")]],
-          ["C", [makeTerminal("a")]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [terminal("a")])
+          .addProduction("B", [terminal("b")])
+          .addProduction("C", [terminal("c")])
+          .addProduction("A", [terminal("b")])
+          .addProduction("C", [terminal("a")])
+          .build()
+      );
       expect(generator.firstSet("A").has("a")).toBeTruthy();
       expect(generator.firstSet("A").has("b")).toBeTruthy();
       expect(generator.firstSet("B").has("b")).toBeTruthy();
@@ -63,54 +50,58 @@ describe("ParseTableGenerator", () => {
       expect(generator.firstSet("C").has("a")).toBeTruthy();
     });
     it("First(X) must contain First(Y) when X -> Y...", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeNonTerminal("B"), makeTerminal("a")]],
-          ["B", [makeNonTerminal("C"), makeTerminal("b")]],
-          ["C", [makeTerminal("c")]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [nonTerminal("B"), terminal("a")])
+          .addProduction("B", [nonTerminal("C"), terminal("b")])
+          .addProduction("C", [terminal("c")])
+          .build()
+      );
       expect(generator.firstSet("A")).toEqual(generator.firstSet("B"));
       expect(generator.firstSet("B")).toEqual(generator.firstSet("C"));
     });
     it("First(X) must contain ε when X -> ε", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [["A", [EMPTY_STRING]]],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .addProduction("A", [EMPTY_STRING])
+          .setStartingSymbol("A")
+          .build()
+      );
       expect(generator.firstSet("A").has(EMPTY_STRING)).toBeTruthy();
     });
     it("First(X) must contain ε when X -> ABC and A,B and C are all nullable", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [EMPTY_STRING]],
-          [
-            "A",
-            [makeNonTerminal("B"), makeNonTerminal("C"), makeNonTerminal("D")],
-          ],
-          ["B", [EMPTY_STRING]],
-          ["C", [EMPTY_STRING]],
-          ["D", [EMPTY_STRING]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [EMPTY_STRING])
+          .addProduction("B", [
+            nonTerminal("B"),
+            nonTerminal("C"),
+            nonTerminal("D"),
+          ])
+          .addProduction("B", [EMPTY_STRING])
+          .addProduction("C", [EMPTY_STRING])
+          .addProduction("D", [EMPTY_STRING])
+          .build()
+      );
       expect(generator.firstSet("A").has(EMPTY_STRING)).toBeTruthy();
     });
     it("mixture of previous cases", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [EMPTY_STRING]],
-          [
-            "A",
-            [makeTerminal("a"), makeNonTerminal("A"), makeNonTerminal("B")],
-          ],
-          ["B", [makeTerminal("b"), makeNonTerminal("C")]],
-          ["C", [makeTerminal("c")]],
-          ["C", [EMPTY_STRING]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [EMPTY_STRING])
+          .addProduction("A", [
+            terminal("a"),
+            nonTerminal("A"),
+            nonTerminal("B"),
+          ])
+          .addProduction("B", [terminal("b"), nonTerminal("C")])
+          .addProduction("C", [terminal("c")])
+          .addProduction("C", [EMPTY_STRING])
+          .build()
+      );
       expect(generator.firstSet("A").has(EMPTY_STRING)).toBeTruthy();
       expect(generator.firstSet("A").has("a")).toBeTruthy();
       expect(generator.firstSet("B").has("b")).toBeTruthy();
@@ -120,53 +111,53 @@ describe("ParseTableGenerator", () => {
   });
   describe("followSet", () => {
     it("Follow(S) must contain EOI (S is starting symbol)", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder().setStartingSymbol("A").build()
+      );
       expect(generator.followSet("A").has(EOI)).toBeTruthy();
     });
     it("Follow(A) must contain First(B) (without empty string) when X -> AB", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeNonTerminal("A"), makeNonTerminal("B")]],
-          ["B", [EMPTY_STRING]],
-          ["B", [makeTerminal("b"), makeNonTerminal("B")]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [nonTerminal("A"), nonTerminal("B")])
+          .addProduction("B", [EMPTY_STRING])
+          .addProduction("B", [terminal("b"), nonTerminal("B")])
+          .build()
+      );
       expect(generator.followSet("A").has("b")).toBeTruthy();
       expect(generator.followSet("A").has(EMPTY_STRING)).toBeFalsy();
     });
     it("Follow(B) must contain Follow(A) when A -> ...B", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeNonTerminal("A"), makeNonTerminal("X")]],
-          ["X", [makeTerminal("x")]],
-          ["X", [makeTerminal("y")]],
-          ["X", [makeTerminal("z")]],
-          ["A", [makeTerminal("a"), makeNonTerminal("B")]],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [nonTerminal("A"), nonTerminal("X")])
+          .addProduction("X", [terminal("x")])
+          .addProduction("X", [terminal("y")])
+          .addProduction("X", [terminal("z")])
+          .addProduction("A", [terminal("a"), nonTerminal("B")])
+          .build()
+      );
       expect(generator.followSet("B")).toEqual(generator.followSet("A"));
     });
     it("Follow(B) must contain Follow(A) when A -> ...Bβ and β is nullable", () => {
-      const generator = new ParseTableGenerator({
-        startingSymbol: "A",
-        productions: [
-          ["A", [makeNonTerminal("A"), makeNonTerminal("X")]],
-          ["X", [makeTerminal("x")]],
-          ["X", [makeTerminal("y")]],
-          ["X", [makeTerminal("z")]],
-          ["C", [EMPTY_STRING]],
-          ["C", [makeTerminal("c")]],
-          [
-            "A",
-            [makeTerminal("a"), makeNonTerminal("B"), makeNonTerminal("C")],
-          ],
-        ],
-      });
+      const generator = new ParseTableGenerator(
+        new CFGrammarBuilder()
+          .setStartingSymbol("A")
+          .addProduction("A", [nonTerminal("A"), nonTerminal("X")])
+          .addProduction("X", [terminal("x")])
+          .addProduction("X", [terminal("y")])
+          .addProduction("X", [terminal("z")])
+          .addProduction("C", [EMPTY_STRING])
+          .addProduction("C", [terminal("c")])
+          .addProduction("A", [
+            terminal("a"),
+            nonTerminal("B"),
+            nonTerminal("C"),
+          ])
+          .build()
+      );
       expect(generator.followSet("A")).toEqual(generator.followSet("A"));
     });
   });
@@ -184,37 +175,37 @@ describe("ParseTableGenerator", () => {
         {
           startingSymbol: "S",
           productions: [
-            ["S", [makeNonTerminal("F"), makeNonTerminal("S")]],
-            ["S", [makeNonTerminal("Q")]],
+            ["S", [nonTerminal("F"), nonTerminal("S")]],
+            ["S", [nonTerminal("Q")]],
             [
               "S",
               [
-                makeTerminal("("),
-                makeNonTerminal("S"),
-                makeTerminal(")"),
-                makeNonTerminal("S"),
+                terminal("("),
+                nonTerminal("S"),
+                terminal(")"),
+                nonTerminal("S"),
               ],
             ],
-            ["F", [makeTerminal("!"), makeTerminal("STRING")]],
-            ["Q", [makeTerminal("?"), makeTerminal("STRING")]],
+            ["F", [terminal("!"), terminal("STRING")]],
+            ["Q", [terminal("?"), terminal("STRING")]],
           ],
         },
         {
           S: {
-            "!": [makeNonTerminal("F"), makeNonTerminal("S")],
-            "?": [makeNonTerminal("Q")],
+            "!": [nonTerminal("F"), nonTerminal("S")],
+            "?": [nonTerminal("Q")],
             "(": [
-              makeTerminal("("),
-              makeNonTerminal("S"),
-              makeTerminal(")"),
-              makeNonTerminal("S"),
+              terminal("("),
+              nonTerminal("S"),
+              terminal(")"),
+              nonTerminal("S"),
             ],
           },
           Q: {
-            "?": [makeTerminal("?"), makeTerminal("STRING")],
+            "?": [terminal("?"), terminal("STRING")],
           },
           F: {
-            "!": [makeTerminal("!"), makeTerminal("STRING")],
+            "!": [terminal("!"), terminal("STRING")],
           },
         },
       ],
@@ -223,21 +214,21 @@ describe("ParseTableGenerator", () => {
         {
           startingSymbol: "A",
           productions: [
-            ["A", [makeTerminal("a"), makeNonTerminal("A")]],
-            ["A", [makeNonTerminal("B")]],
-            ["B", [makeTerminal("b"), makeNonTerminal("B")]],
-            ["B", [makeTerminal("c")]],
+            ["A", [terminal("a"), nonTerminal("A")]],
+            ["A", [nonTerminal("B")]],
+            ["B", [terminal("b"), nonTerminal("B")]],
+            ["B", [terminal("c")]],
           ],
         },
         {
           A: {
-            a: [makeTerminal("a"), makeNonTerminal("A")],
-            b: [makeNonTerminal("B")],
-            c: [makeNonTerminal("B")],
+            a: [terminal("a"), nonTerminal("A")],
+            b: [nonTerminal("B")],
+            c: [nonTerminal("B")],
           },
           B: {
-            b: [makeTerminal("b"), makeNonTerminal("B")],
-            c: [makeTerminal("c")],
+            b: [terminal("b"), nonTerminal("B")],
+            c: [terminal("c")],
           },
         },
       ],
@@ -246,18 +237,18 @@ describe("ParseTableGenerator", () => {
         {
           startingSymbol: "S",
           productions: [
-            ["S", [makeTerminal("a"), makeNonTerminal("B")]],
-            ["B", [makeTerminal("b")]],
-            ["B", [makeTerminal("a"), makeNonTerminal("B"), makeTerminal("b")]],
+            ["S", [terminal("a"), nonTerminal("B")]],
+            ["B", [terminal("b")]],
+            ["B", [terminal("a"), nonTerminal("B"), terminal("b")]],
           ],
         },
         {
           S: {
-            a: [makeTerminal("a"), makeNonTerminal("B")],
+            a: [terminal("a"), nonTerminal("B")],
           },
           B: {
-            a: [makeTerminal("a"), makeNonTerminal("B"), makeTerminal("b")],
-            b: [makeTerminal("b")],
+            a: [terminal("a"), nonTerminal("B"), terminal("b")],
+            b: [terminal("b")],
           },
         },
       ],
@@ -266,58 +257,50 @@ describe("ParseTableGenerator", () => {
         {
           startingSymbol: "E",
           productions: [
-            ["E", [makeNonTerminal("T"), makeNonTerminal("E'")]],
-            [
-              "E'",
-              [makeTerminal("+"), makeNonTerminal("T"), makeNonTerminal("E'")],
-            ],
+            ["E", [nonTerminal("T"), nonTerminal("E'")]],
+            ["E'", [terminal("+"), nonTerminal("T"), nonTerminal("E'")]],
             ["E'", [EMPTY_STRING]],
-            ["T", [makeNonTerminal("F"), makeNonTerminal("T'")]],
-            [
-              "T'",
-              [makeTerminal("*"), makeNonTerminal("F"), makeNonTerminal("T'")],
-            ],
+            ["T", [nonTerminal("F"), nonTerminal("T'")]],
+            ["T'", [terminal("*"), nonTerminal("F"), nonTerminal("T'")]],
             ["T'", [EMPTY_STRING]],
-            ["F", [makeTerminal("("), makeNonTerminal("E"), makeTerminal(")")]],
-            ["F", [makeTerminal("id")]],
+            ["F", [terminal("("), nonTerminal("E"), terminal(")")]],
+            ["F", [terminal("id")]],
           ],
         },
         {
           E: {
-            id: [makeNonTerminal("T"), makeNonTerminal("E'")],
-            "(": [makeNonTerminal("T"), makeNonTerminal("E'")],
+            id: [nonTerminal("T"), nonTerminal("E'")],
+            "(": [nonTerminal("T"), nonTerminal("E'")],
           },
           "E'": {
-            "+": [
-              makeTerminal("+"),
-              makeNonTerminal("T"),
-              makeNonTerminal("E'"),
-            ],
+            "+": [terminal("+"), nonTerminal("T"), nonTerminal("E'")],
             ")": [EMPTY_STRING],
             [EOI]: [EMPTY_STRING],
           },
           T: {
-            id: [makeNonTerminal("F"), makeNonTerminal("T'")],
-            "(": [makeNonTerminal("F"), makeNonTerminal("T'")],
+            id: [nonTerminal("F"), nonTerminal("T'")],
+            "(": [nonTerminal("F"), nonTerminal("T'")],
           },
           "T'": {
             "+": [EMPTY_STRING],
-            "*": [
-              makeTerminal("*"),
-              makeNonTerminal("F"),
-              makeNonTerminal("T'"),
-            ],
+            "*": [terminal("*"), nonTerminal("F"), nonTerminal("T'")],
             ")": [EMPTY_STRING],
             [EOI]: [EMPTY_STRING],
           },
           F: {
-            id: [makeTerminal("id")],
-            "(": [makeTerminal("("), makeNonTerminal("E"), makeTerminal(")")],
+            id: [terminal("id")],
+            "(": [terminal("("), nonTerminal("E"), terminal(")")],
           },
         },
       ],
     ])("parse table for %s", (_, G, expectedTable) => {
-      const generator = new ParseTableGenerator(G as CFGrammar);
+      const grammarBuilder = new CFGrammarBuilder().setStartingSymbol(
+        G.startingSymbol
+      );
+      G.productions.forEach((rule) =>
+        grammarBuilder.addProduction(rule[0] as string, rule[1] as RHSSymbol[])
+      );
+      const generator = new ParseTableGenerator(grammarBuilder.build());
       expect(generator.generateTable()).toEqual(expectedTable);
     });
   });

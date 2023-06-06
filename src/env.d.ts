@@ -14,11 +14,6 @@ type RHSSymbol = GrammarSymbol | Symbol;
  */
 type CFProduction = [string, Array<RHSSymbol>];
 
-interface CFGrammar {
-  productions: Array<CFProduction>;
-  startingSymbol: string;
-}
-
 type ParseTable = Record<
   string,
   Record<string | unique symbol, Array<RHSSymbol>>

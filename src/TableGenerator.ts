@@ -1,3 +1,4 @@
+import CFGrammar from "./grammar";
 import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 
 export default class ParseTableGenerator {
@@ -6,6 +7,7 @@ export default class ParseTableGenerator {
   private grammar: CFGrammar;
 
   public constructor(G: CFGrammar) {
+    this.validateGrammar(G);
     this.grammar = G;
     this.generateFirsts();
     this.generateFollows();
@@ -33,6 +35,16 @@ export default class ParseTableGenerator {
       rhsFirst.forEach((symbol) => (t[lhs][symbol.valueOf()] = rhs));
     });
     return t;
+  }
+
+  private validateGrammar(G: CFGrammar) {
+    G.productions.forEach((rule) => {
+      if (rule[1].some((symbol) => symbol === EOI)) {
+        throw new TypeError(
+          "Cannot have EOI in right-hand side of production when using ParseTableGenerator"
+        );
+      }
+    });
   }
 
   private generateFirsts(): void {
