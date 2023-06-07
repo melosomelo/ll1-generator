@@ -20,6 +20,7 @@ export default function buildGrammar(): GrammarBuilder {
     },
     setStartingSymbol(symbol) {
       this.startingSymbol = symbol;
+      this.nonTerminals.add(this.startingSymbol);
       return this;
     },
     build() {

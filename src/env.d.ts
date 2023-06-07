@@ -3,8 +3,15 @@ interface GrammarSymbol {
   value: string;
 }
 
+/**
+ * Any symbol that can appear on the right-hand side
+ * of a grammar production.
+ */
 type RHSSymbol = GrammarSymbol | Symbol;
 
+/**
+ * A context-free grammar.
+ */
 interface CFGrammar {
   startingSymbol: string;
   terminals: Set<string>;

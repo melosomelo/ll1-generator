@@ -39,7 +39,7 @@ function initializeFirstsToEmpty(
   return firsts;
 }
 
-function calculateFirstSetForString(
+export function calculateFirstSetForString(
   firsts: Map<string, Set<string | Symbol>>,
   sententialForm: Array<RHSSymbol>
 ): Set<string | Symbol> {
