@@ -2,8 +2,8 @@ import CFGrammar from "./grammar";
 import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 
 export default class ParseTableGenerator {
-  private firsts = new Map<string, Set<string | Symbol>>();
-  private follows = new Map<string, Set<string | Symbol>>();
+  private _firsts = new Map<string, Set<string | Symbol>>();
+  private _follows = new Map<string, Set<string | Symbol>>();
   public grammar: CFGrammar;
 
   public constructor(G: CFGrammar) {
@@ -19,6 +19,14 @@ export default class ParseTableGenerator {
 
   public followSet(nonTerminal: string): Set<string | Symbol> {
     return new Set(this.getFollow(nonTerminal));
+  }
+
+  public get firsts() {
+    return this._firsts;
+  }
+
+  public get follows() {
+    return this._follows;
   }
 
   public generateTable(): ParseTable {
@@ -59,13 +67,13 @@ export default class ParseTableGenerator {
     let sizeBefore = 0,
       sizeAfter = 0;
     do {
-      sizeBefore = this.sumSizesOfSetsInMap(this.firsts);
+      sizeBefore = this.sumSizesOfSetsInMap(this._firsts);
       this.grammar.productions.forEach((rule) => {
         const [lhs, rhs] = rule;
         const rhsFirst = this.calculateFirstSet(rhs);
         this.addToFirstSet(lhs, rhsFirst);
       });
-      sizeAfter = this.sumSizesOfSetsInMap(this.firsts);
+      sizeAfter = this.sumSizesOfSetsInMap(this._firsts);
     } while (sizeBefore < sizeAfter);
   }
 
@@ -103,12 +111,12 @@ export default class ParseTableGenerator {
   }
 
   private generateFollows(): void {
-    this.follows.set(this.grammar.startingSymbol, new Set());
-    this.follows.get(this.grammar.startingSymbol)!.add(EOI);
+    this._follows.set(this.grammar.startingSymbol, new Set());
+    this._follows.get(this.grammar.startingSymbol)!.add(EOI);
     let sizeBefore = 1,
       sizeAfter = 1;
     do {
-      sizeBefore = this.sumSizesOfSetsInMap(this.follows);
+      sizeBefore = this.sumSizesOfSetsInMap(this._follows);
       this.grammar.productions.forEach((rule) => {
         const [lhs, rhs] = rule;
         rhs.forEach((symbol, i) => {
@@ -121,7 +129,7 @@ export default class ParseTableGenerator {
           }
         });
       });
-      sizeAfter = this.sumSizesOfSetsInMap(this.follows);
+      sizeAfter = this.sumSizesOfSetsInMap(this._follows);
     } while (sizeBefore < sizeAfter);
   }
 
@@ -147,15 +155,15 @@ export default class ParseTableGenerator {
   }
 
   private getFirst(nonTerminal: string): Set<string | Symbol> {
-    if (this.firsts.get(nonTerminal) === undefined)
-      this.firsts.set(nonTerminal, new Set());
-    return this.firsts.get(nonTerminal) as Set<string | Symbol>;
+    if (this._firsts.get(nonTerminal) === undefined)
+      this._firsts.set(nonTerminal, new Set());
+    return this._firsts.get(nonTerminal) as Set<string | Symbol>;
   }
 
   private getFollow(nonTerminal: string): Set<string | Symbol> {
-    if (this.follows.get(nonTerminal) === undefined)
-      this.follows.set(nonTerminal, new Set());
-    return this.follows.get(nonTerminal) as Set<string | Symbol>;
+    if (this._follows.get(nonTerminal) === undefined)
+      this._follows.set(nonTerminal, new Set());
+    return this._follows.get(nonTerminal) as Set<string | Symbol>;
   }
 
   private sumSizesOfSetsInMap(map: Map<string, Set<any>>): number {
