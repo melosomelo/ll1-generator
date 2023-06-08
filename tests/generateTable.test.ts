@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from "@jest/globals";
 import { EMPTY_STRING, EOI, nonTerminal, terminal } from "../src/symbols";
 import buildGrammar from "../src/buildGrammar";
 import generateParseTable from "../src/generateTable";
+import LL1ConflictError from "../src/errors/LL1ConflictError";
 
 describe("generateParseTable", () => {
   it.each([
@@ -175,5 +176,32 @@ describe("generateParseTable", () => {
       grammarBuilder.addProduction(rule[0] as string, rule[1] as RHSSymbol[])
     );
     expect(generateParseTable(grammarBuilder.build())).toEqual(expectedTable);
+  });
+  it("should throw when grammar isn't left factored", () => {
+    const G = buildGrammar()
+      .setStartingSymbol("A")
+      .addProduction("A", [terminal("a"), terminal("b")])
+      .addProduction("A", [terminal("a"), terminal("c")])
+      .build();
+    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
+  });
+  it("should throw when grammar is left-recursive", () => {
+    const G = buildGrammar()
+      .setStartingSymbol("A")
+      .addProduction("A", [nonTerminal("A"), terminal("a")])
+      .addProduction("A", [terminal("b")])
+      .addProduction("A", [terminal("c")])
+      .build();
+    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
+  });
+  it("should throw when a is both in First(A) and Follow(A) and A has a nullable production", () => {
+    const G = buildGrammar()
+      .setStartingSymbol("A")
+      .addProduction("A", [terminal("a")])
+      .addProduction("X", [terminal("x"), nonTerminal("A"), terminal("a")])
+      .addProduction("A", [nonTerminal("B")])
+      .addProduction("B", [EMPTY_STRING])
+      .build();
+    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
   });
 });

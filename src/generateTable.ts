@@ -1,3 +1,4 @@
+import LL1ConflictError from "./errors/LL1ConflictError";
 import firstSet, { calculateFirstSetForString } from "./first";
 import followSet from "./follow";
 import { EMPTY_STRING, EOI } from "./symbols";
@@ -19,10 +20,12 @@ export default function generateParseTable(
     );
     if (rhsFirst.has(EMPTY_STRING)) {
       const lhsFollow = follow[lhs];
-      lhsFollow.forEach((symbol) => (table[lhs][symbol.valueOf()] = rhs));
+      lhsFollow.forEach((symbol) => {
+        setTableEntry(table, lhs, symbol, rhs);
+      });
     }
     rhsFirst.delete(EMPTY_STRING);
-    rhsFirst.forEach((symbol) => (table[lhs][symbol.valueOf()] = rhs));
+    rhsFirst.forEach((symbol) => setTableEntry(table, lhs, symbol, rhs));
   });
   return table;
 }
@@ -33,4 +36,21 @@ function preFillTable(table: ParseTable, G: CFGrammar) {
     G.terminals.forEach((symbol2) => (table[symbol][symbol2] = null));
     table[symbol][EOI] = null;
   });
+}
+
+function setTableEntry(
+  table: ParseTable,
+  nonTerminal: string,
+  symbol: string | Symbol,
+  rhs: Array<RHSSymbol>
+): void {
+  if (table[nonTerminal][symbol.valueOf()] !== null) {
+    throw new LL1ConflictError(
+      nonTerminal,
+      symbol.valueOf(),
+      table[nonTerminal][symbol.valueOf()]!,
+      rhs
+    );
+  }
+  table[nonTerminal][symbol.valueOf()] = rhs;
 }
