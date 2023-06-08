@@ -104,7 +104,7 @@ const follow = followSet(G, first);
 
 // { A: Set(3) { "a", Symbol(EMPTY_STRING), "b" }, B: { Set(2) { Symbol(EMPTY_STRING), "b" }}}
 console.log(first);
-//{ A: Set(1) { Symbol(EOI) }, B: { Symbol(EOI) }}
+//{ A: Set(1) { Symbol(END_OF_INPUT) }, B: { Symbol(END_OF_INPUT) }}
 console.log(follow);
 ```
 

@@ -1,5 +1,7 @@
-export const EMPTY_STRING = Symbol("EPSILON");
-export const EOI = Symbol("EOI");
+export const EMPTY_STRING = Symbol("EMPTY_STRING");
+
+export const END_OF_INPUT = Symbol("END_OF_INPUT");
+
 export const terminal = (s: string): GrammarSymbol => ({
   type: "TERMINAL",
   value: s,

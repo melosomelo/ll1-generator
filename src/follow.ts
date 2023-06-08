@@ -1,6 +1,6 @@
 import InvalidGrammarError from "./errors/InvalidGrammarError";
 import firstSet, { calculateFirstSetForString } from "./first";
-import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
+import { EMPTY_STRING, END_OF_INPUT, isGrammarSymbol } from "./symbols";
 import { sumSizesOfSetsInMap, union } from "./util";
 
 /**
@@ -46,7 +46,7 @@ export default function followSet(
 function initializeFollows(G: CFGrammar) {
   const follows = new Map<string, Set<string | Symbol>>();
   G.nonTerminals.forEach((nonTerminal) => follows.set(nonTerminal, new Set()));
-  follows.get(G.startingSymbol)!.add(EOI);
+  follows.get(G.startingSymbol)!.add(END_OF_INPUT);
   return follows;
 }
 

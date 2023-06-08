@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import { EMPTY_STRING, EOI, nonTerminal, terminal } from "../src/symbols";
+import {
+  EMPTY_STRING,
+  END_OF_INPUT,
+  nonTerminal,
+  terminal,
+} from "../src/symbols";
 import buildGrammar from "../src/buildGrammar";
 import generateParseTable from "../src/generateTable";
 import LL1ConflictError from "../src/errors/LL1ConflictError";
@@ -9,12 +14,12 @@ describe("generateParseTable", () => {
     [
       "empty grammar",
       { startingSymbol: "A", productions: [] },
-      { A: { [EOI]: null } },
+      { A: { [END_OF_INPUT]: null } },
     ],
     [
       "grammar with only one epsilon-rule",
       { startingSymbol: "A", productions: [["A", [EMPTY_STRING]]] },
-      { A: { [EOI]: [EMPTY_STRING] } },
+      { A: { [END_OF_INPUT]: [EMPTY_STRING] } },
     ],
     [
       "grammar without epsilon-rules (taken from parsing techniques pg.240)",
@@ -43,14 +48,14 @@ describe("generateParseTable", () => {
           ],
           ")": null,
           STRING: null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
         Q: {
           "?": [terminal("?"), terminal("STRING")],
           "!": null,
           "(": null,
           ")": null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
           STRING: null,
         },
         F: {
@@ -59,7 +64,7 @@ describe("generateParseTable", () => {
           ")": null,
           "?": null,
           STRING: null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
       },
     ],
@@ -79,13 +84,13 @@ describe("generateParseTable", () => {
           a: [terminal("a"), nonTerminal("A")],
           b: [nonTerminal("B")],
           c: [nonTerminal("B")],
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
         B: {
           a: null,
           b: [terminal("b"), nonTerminal("B")],
           c: [terminal("c")],
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
       },
     ],
@@ -103,12 +108,12 @@ describe("generateParseTable", () => {
         S: {
           a: [terminal("a"), nonTerminal("B")],
           b: null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
         B: {
           a: [terminal("a"), nonTerminal("B"), terminal("b")],
           b: [terminal("b")],
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
       },
     ],
@@ -132,7 +137,7 @@ describe("generateParseTable", () => {
           ")": null,
           "*": null,
           "+": null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
           id: [nonTerminal("T"), nonTerminal("E'")],
           "(": [nonTerminal("T"), nonTerminal("E'")],
         },
@@ -142,7 +147,7 @@ describe("generateParseTable", () => {
           id: null,
           "+": [terminal("+"), nonTerminal("T"), nonTerminal("E'")],
           ")": [EMPTY_STRING],
-          [EOI]: [EMPTY_STRING],
+          [END_OF_INPUT]: [EMPTY_STRING],
         },
         T: {
           id: [nonTerminal("F"), nonTerminal("T'")],
@@ -150,13 +155,13 @@ describe("generateParseTable", () => {
           ")": null,
           "*": null,
           "+": null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
         },
         "T'": {
           "+": [EMPTY_STRING],
           "*": [terminal("*"), nonTerminal("F"), nonTerminal("T'")],
           ")": [EMPTY_STRING],
-          [EOI]: [EMPTY_STRING],
+          [END_OF_INPUT]: [EMPTY_STRING],
           "(": null,
           id: null,
         },
@@ -164,7 +169,7 @@ describe("generateParseTable", () => {
           ")": null,
           "*": null,
           "+": null,
-          [EOI]: null,
+          [END_OF_INPUT]: null,
           id: [terminal("id")],
           "(": [terminal("("), nonTerminal("E"), terminal(")")],
         },

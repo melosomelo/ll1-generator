@@ -1,13 +1,18 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
 import buildGrammar from "../src/buildGrammar";
 import followSet from "../src/follow";
-import { EMPTY_STRING, EOI, nonTerminal, terminal } from "../src/symbols";
+import {
+  EMPTY_STRING,
+  END_OF_INPUT,
+  nonTerminal,
+  terminal,
+} from "../src/symbols";
 
 describe("followSet", () => {
-  it("Follow(S) must contain EOI (S is starting symbol)", () => {
+  it("Follow(S) must contain END_OF_INPUT (S is starting symbol)", () => {
     const G = buildGrammar().setStartingSymbol("A").build();
     const follow = followSet(G);
-    expect(follow["A"].has(EOI)).toBeTruthy();
+    expect(follow["A"].has(END_OF_INPUT)).toBeTruthy();
     expect(follow["A"].size).toEqual(1);
   });
   it("Follow(A) must contain First(B) (without empty string) when X -> AB", () => {

@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from "@jest/globals";
-import { EMPTY_STRING, EOI, terminal, nonTerminal } from "../src/symbols";
+import {
+  EMPTY_STRING,
+  END_OF_INPUT,
+  terminal,
+  nonTerminal,
+} from "../src/symbols";
 import buildGrammar from "../src/buildGrammar";
 
 describe("CFGrammarBuilder", () => {

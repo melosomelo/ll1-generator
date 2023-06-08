@@ -1,7 +1,7 @@
 import LL1ConflictError from "./errors/LL1ConflictError";
 import firstSet, { calculateFirstSetForString } from "./first";
 import followSet from "./follow";
-import { EMPTY_STRING, EOI } from "./symbols";
+import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
 
 export default function generateParseTable(
   G: CFGrammar,
@@ -34,7 +34,7 @@ function preFillTable(table: ParseTable, G: CFGrammar) {
   G.nonTerminals.forEach((symbol) => {
     table[symbol] = {};
     G.terminals.forEach((symbol2) => (table[symbol][symbol2] = null));
-    table[symbol][EOI] = null;
+    table[symbol][END_OF_INPUT] = null;
   });
 }
 
