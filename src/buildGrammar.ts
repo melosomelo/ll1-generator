@@ -1,3 +1,4 @@
+import InvalidGrammarError from "./errors/InvalidGrammarError";
 import { isGrammarSymbol } from "./symbols";
 
 export default function buildGrammar(): GrammarBuilder {
@@ -25,7 +26,7 @@ export default function buildGrammar(): GrammarBuilder {
     },
     build() {
       if (this.startingSymbol === null)
-        throw new Error(
+        throw new InvalidGrammarError(
           "Cannot build grammar without specifying starting symbol!"
         );
       return {

@@ -1,3 +1,4 @@
+import InvalidGrammarError from "./errors/InvalidGrammarError";
 import { isGrammarSymbol } from "./symbols";
 import { EMPTY_STRING } from "./symbols";
 import { sumSizesOfSetsInMap, union } from "./util";
@@ -21,7 +22,7 @@ export default function firstSet(
       const rhsFirst = calculateFirstSetForString(firsts, rhs);
       const lhsCurrentFirst = firsts.get(lhs);
       if (lhsCurrentFirst === undefined)
-        throw new Error(
+        throw new InvalidGrammarError(
           `Unable to calculate First set for grammar. Non-terminal ${lhs} appears on left-hand side of production but isn't present in the grammar's non-terminals set.`
         );
       firsts.set(lhs, union(lhsCurrentFirst, rhsFirst));
@@ -54,7 +55,7 @@ export function calculateFirstSetForString(
       } else {
         const symbolFirst = firsts.get(symbol.value);
         if (symbolFirst === undefined)
-          throw new Error(
+          throw new InvalidGrammarError(
             `Unable to calculate First set for grammar. Non-terminal ${symbol.value} appears on right-hand side of production but isn't present in the grammar's non-terminals set.`
           );
         symbolFirst.forEach((terminal) => result.add(terminal));

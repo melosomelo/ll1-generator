@@ -1,3 +1,4 @@
+import InvalidGrammarError from "./errors/InvalidGrammarError";
 import firstSet, { calculateFirstSetForString } from "./first";
 import { EMPTY_STRING, EOI, isGrammarSymbol } from "./symbols";
 import { sumSizesOfSetsInMap, union } from "./util";
@@ -77,7 +78,7 @@ function calculateFollowSetForNonTerminal(
   if (firstOfRight.has(EMPTY_STRING)) {
     const lhsFollow = follows.get(lhs);
     if (!lhsFollow)
-      throw new Error(
+      throw new InvalidGrammarError(
         `Unable to calculate Follow set for grammar. Non-terminal ${lhs} appears on left-hand side of production but isn't present in the grammar's non-terminals set.`
       );
     lhsFollow.forEach((symbol) => result.add(symbol));
