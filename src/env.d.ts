@@ -42,3 +42,8 @@ interface GrammarBuilder {
   setStartingSymbol: (symbol: string) => GrammarBuilder;
   build(): CFGrammar;
 }
+
+interface ParseTreeNode {
+  value: RHSSymbol;
+  children: Array<ParseTreeNode>;
+}
