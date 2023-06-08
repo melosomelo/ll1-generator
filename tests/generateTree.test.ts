@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import buildGrammar from "../src/buildGrammar";
 import generateParseTable from "../src/generateTable";
-import parse from "../src/generateTree";
+import parse from "../src/parse";
 import { nonTerminal, terminal } from "../src/symbols";
 
 describe("parse", () => {
