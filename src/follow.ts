@@ -27,7 +27,7 @@ export default function followSet(
       const [lhs, rhs] = rule;
       rhs.forEach((symbol, i) => {
         // Follow is only defined for non-terminals.
-        if (isGrammarSymbol(symbol) && symbol.type === "NONTERMINAL") {
+        if (isGrammarSymbol(symbol) && symbol.type === "NON_TERMINAL") {
           follow.set(
             symbol.value,
             union(

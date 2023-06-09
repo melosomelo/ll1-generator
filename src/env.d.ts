@@ -1,5 +1,5 @@
 interface GrammarSymbol {
-  type: "TERMINAL" | "NONTERMINAL";
+  type: "TERMINAL" | "NON_TERMINAL";
   value: string;
 }
 

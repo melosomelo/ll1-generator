@@ -11,7 +11,7 @@ export default function buildGrammar(): GrammarBuilder {
       this.nonTerminals.add(lhs);
       rhs.forEach((symbol) => {
         if (isGrammarSymbol(symbol)) {
-          if (symbol.type === "NONTERMINAL")
+          if (symbol.type === "NON_TERMINAL")
             this.nonTerminals.add(symbol.value);
           else this.terminals.add(symbol.value);
         }

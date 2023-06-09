@@ -44,7 +44,7 @@ type RHSSymbol = GrammarSymbol | Symbol;
 // to enable the use of uppercase/lowercase letters to define
 // both non-terminals and terminals.
 interface GrammarSymbol {
-  type: "TERMINAL" | "NONTERMINAL";
+  type: "TERMINAL" | "NON_TERMINAL";
   value: string;
 }
 ```

@@ -7,7 +7,7 @@ export const terminal = (s: string): GrammarSymbol => ({
   value: s,
 });
 export const nonTerminal = (s: string): GrammarSymbol => ({
-  type: "NONTERMINAL",
+  type: "NON_TERMINAL",
   value: s,
 });
 export function isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
