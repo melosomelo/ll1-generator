@@ -8,34 +8,23 @@ import {
 import buildGrammar from "../src/buildGrammar";
 import generateParseTable from "../src/generateTable";
 import LL1ConflictError from "../src/errors/LL1ConflictError";
+import * as exampleGrammars from "./exampleGrammars";
 
 describe("generateParseTable", () => {
   it.each([
     [
       "empty grammar",
-      { startingSymbol: "A", productions: [] },
+      exampleGrammars.emptyGrammar,
       { A: { [END_OF_INPUT]: null } },
     ],
     [
       "grammar with only one epsilon-rule",
-      { startingSymbol: "A", productions: [["A", [EMPTY_STRING]]] },
+      exampleGrammars.emptyLanguageGrammar,
       { A: { [END_OF_INPUT]: [EMPTY_STRING] } },
     ],
     [
       "grammar without epsilon-rules (taken from parsing techniques pg.240)",
-      {
-        startingSymbol: "S",
-        productions: [
-          ["S", [nonTerminal("F"), nonTerminal("S")]],
-          ["S", [nonTerminal("Q")]],
-          [
-            "S",
-            [terminal("("), nonTerminal("S"), terminal(")"), nonTerminal("S")],
-          ],
-          ["F", [terminal("!"), terminal("STRING")]],
-          ["Q", [terminal("?"), terminal("STRING")]],
-        ],
-      },
+      exampleGrammars.grammarWithoutEpsilonRules,
       {
         S: {
           "!": [nonTerminal("F"), nonTerminal("S")],
@@ -70,15 +59,7 @@ describe("generateParseTable", () => {
     ],
     [
       "grammar without epsilon-rules 2",
-      {
-        startingSymbol: "A",
-        productions: [
-          ["A", [terminal("a"), nonTerminal("A")]],
-          ["A", [nonTerminal("B")]],
-          ["B", [terminal("b"), nonTerminal("B")]],
-          ["B", [terminal("c")]],
-        ],
-      },
+      exampleGrammars.grammarWithoutEpsilonRules2,
       {
         A: {
           a: [terminal("a"), nonTerminal("A")],
@@ -96,14 +77,7 @@ describe("generateParseTable", () => {
     ],
     [
       "grammar without epsilon-rules 3 (taken from Parsing Techniques pg.238)",
-      {
-        startingSymbol: "S",
-        productions: [
-          ["S", [terminal("a"), nonTerminal("B")]],
-          ["B", [terminal("b")]],
-          ["B", [terminal("a"), nonTerminal("B"), terminal("b")]],
-        ],
-      },
+      exampleGrammars.grammarWithoutEpsilonRules3,
       {
         S: {
           a: [terminal("a"), nonTerminal("B")],
@@ -119,19 +93,7 @@ describe("generateParseTable", () => {
     ],
     [
       "arithmetic expression grammar taken from the 'Dragon Book' pg.225",
-      {
-        startingSymbol: "E",
-        productions: [
-          ["E", [nonTerminal("T"), nonTerminal("E'")]],
-          ["E'", [terminal("+"), nonTerminal("T"), nonTerminal("E'")]],
-          ["E'", [EMPTY_STRING]],
-          ["T", [nonTerminal("F"), nonTerminal("T'")]],
-          ["T'", [terminal("*"), nonTerminal("F"), nonTerminal("T'")]],
-          ["T'", [EMPTY_STRING]],
-          ["F", [terminal("("), nonTerminal("E"), terminal(")")]],
-          ["F", [terminal("id")]],
-        ],
-      },
+      exampleGrammars.arithmeticExpressionGrammar,
       {
         E: {
           ")": null,
@@ -176,11 +138,7 @@ describe("generateParseTable", () => {
       },
     ],
   ])("parse table for %s", (_, G, expectedTable) => {
-    const grammarBuilder = buildGrammar().setStartingSymbol(G.startingSymbol);
-    G.productions.forEach((rule) =>
-      grammarBuilder.addProduction(rule[0] as string, rule[1] as RHSSymbol[])
-    );
-    expect(generateParseTable(grammarBuilder.build())).toEqual(expectedTable);
+    expect(generateParseTable(G)).toEqual(expectedTable);
   });
   it("should throw when grammar isn't left factored", () => {
     const G = buildGrammar()

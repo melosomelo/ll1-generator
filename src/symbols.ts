@@ -13,3 +13,11 @@ export const nonTerminal = (s: string): GrammarSymbol => ({
 export function isGrammarSymbol(symbol: RHSSymbol): symbol is GrammarSymbol {
   return typeof symbol !== "symbol";
 }
+
+export function isNonTerminal(symbol: RHSSymbol): boolean {
+  return isGrammarSymbol(symbol) && symbol.type === "NON_TERMINAL";
+}
+
+export function isTerminal(symbol: RHSSymbol): boolean {
+  return isGrammarSymbol(symbol) && symbol.type === "TERMINAL";
+}
