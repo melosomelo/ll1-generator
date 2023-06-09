@@ -3,6 +3,7 @@ import generateParseTable from "./generateTable";
 import {
   EMPTY_STRING,
   END_OF_INPUT,
+  isGrammarSymbol,
   isNonTerminal,
   nonTerminal,
 } from "./symbols";
@@ -29,30 +30,44 @@ export default function parse(
   const stack: Array<RHSSymbol> = [END_OF_INPUT, nonTerminal(G.startingSymbol)];
   const input = [...tokens, END_OF_INPUT];
   let inputIndex = 0;
-  while (stack[0] !== END_OF_INPUT) {
-    // The only symbol that can exist in the stack is END_OF_INPUT.
-    // If we're inside the while loop, then it is a GrammarSymbol.
-    const stackTop = stack[0] as GrammarSymbol;
-    // Same rationale for currentToken.
-    const currentToken = input[inputIndex] as string;
-    if (isNonTerminal(stack[0])) {
-      const prediction = parseTable[stackTop.value][currentToken];
-      if (prediction === null)
-        throw new LL1ParseError(
-          `Invalid input string. Unexpected token ${currentToken}!`
-        );
+  while (inputIndex < input.length) {
+    const stackTop = stack[stack.length - 1];
+    const currentToken = input[inputIndex];
+    if (isNonTerminal(stackTop)) {
+      const prediction =
+        parseTable[(stackTop as GrammarSymbol).value][currentToken];
+      if (prediction === null) {
+        const errorMsg =
+          currentToken === END_OF_INPUT
+            ? "Unexpected end of input"
+            : `Unexpected token '${String(currentToken)}'`;
+        throw new LL1ParseError(errorMsg);
+      }
       stack.pop();
-      // Not epsilon-rule.
-      if (!(prediction.length === 0 && prediction[0] === EMPTY_STRING)) {
-        stack.concat(...prediction);
+      // If the production isn't an epsilon-rule, then add it (reversed) to the stack.
+      if (!(prediction.length === 1 && prediction[0] === EMPTY_STRING)) {
+        stack.push(...prediction.reverse());
       }
     } else {
-      if (currentToken !== stackTop.value)
-        throw new LL1ParseError(
-          `Invalid input string. Expected ${stackTop.value} but got ${currentToken}!`
-        );
-      inputIndex += 1;
+      const stackTopValue = isGrammarSymbol(stackTop)
+        ? stackTop.value
+        : stackTop;
+      if (stackTopValue !== currentToken) {
+        let errorMsg = "";
+        if (
+          typeof currentToken === "string" &&
+          typeof stackTopValue === "string"
+        ) {
+          errorMsg = `Expected ${stackTop} but got ${currentToken}!`;
+        } else if (typeof currentToken === "symbol") {
+          errorMsg = "Unexpected end of input";
+        } else {
+          errorMsg = `Unexpected token '${currentToken}'`;
+        }
+        throw new LL1ParseError(errorMsg);
+      }
       stack.pop();
+      inputIndex += 1;
     }
   }
   return { value: nonTerminal(G.startingSymbol), children: [] };
