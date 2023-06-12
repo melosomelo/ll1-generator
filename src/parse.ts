@@ -5,8 +5,10 @@ import {
   END_OF_INPUT,
   isGrammarSymbol,
   isNonTerminal,
+  isTerminal,
   nonTerminal,
 } from "./symbols";
+import { makeNode } from "./util";
 
 /**
  * Parses a list of tokens based on a parsing table. As of is right now,
@@ -27,15 +29,19 @@ export default function parse(
   parseTableParam?: ParseTable
 ): ParseTreeNode {
   const parseTable = parseTableParam ?? generateParseTable(G);
-  const stack: Array<RHSSymbol> = [END_OF_INPUT, nonTerminal(G.startingSymbol)];
+  const root = makeNode(nonTerminal(G.startingSymbol));
+  const stack: Array<Symbol | ParseTreeNode> = [END_OF_INPUT, root];
   const input = [...tokens, END_OF_INPUT];
   let inputIndex = 0;
-  while (inputIndex < input.length) {
-    const stackTop = stack[stack.length - 1];
+  while (stack[stack.length - 1] !== END_OF_INPUT) {
+    const stackTop = stack[stack.length - 1] as ParseTreeNode;
     const currentToken = input[inputIndex];
-    if (isNonTerminal(stackTop)) {
+    // Element at the top of stack is a non-terminal.
+    // Check to see if there is a prediction in table. If
+    // there is, apply it and change the stack. If not, throw an error.
+    if (isNonTerminal(stackTop.value)) {
       const prediction =
-        parseTable[(stackTop as GrammarSymbol).value][currentToken];
+        parseTable[(stackTop.value as GrammarSymbol).value][currentToken];
       if (prediction === null) {
         const errorMsg =
           currentToken === END_OF_INPUT
@@ -43,14 +49,16 @@ export default function parse(
             : `Unexpected token '${String(currentToken)}'`;
         throw new LL1ParseError(errorMsg);
       }
+      const nodes = prediction.map((symbol) => makeNode(symbol));
+      stackTop.children.push(...nodes);
       stack.pop();
       // If the production isn't an epsilon-rule, then add it (reversed) to the stack.
       if (!(prediction.length === 1 && prediction[0] === EMPTY_STRING)) {
-        stack.push(...prediction.reverse());
+        stack.push(...nodes.reverse());
       }
     } else {
-      const stackTopValue = isGrammarSymbol(stackTop)
-        ? stackTop.value
+      const stackTopValue = isGrammarSymbol(stackTop.value)
+        ? (stackTop.value as GrammarSymbol).value
         : stackTop;
       if (stackTopValue !== currentToken) {
         let errorMsg = "";
@@ -70,5 +78,5 @@ export default function parse(
       inputIndex += 1;
     }
   }
-  return { value: nonTerminal(G.startingSymbol), children: [] };
+  return root;
 }

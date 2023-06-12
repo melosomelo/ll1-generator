@@ -10,3 +10,13 @@ export function union(A: Set<any>, B: Set<any>): Set<any> {
   B.forEach((val) => S.add(val));
   return S;
 }
+
+export function makeNode(
+  symbol: RHSSymbol,
+  ...children: ParseTreeNode[]
+): ParseTreeNode {
+  return {
+    value: symbol,
+    children: children ?? [],
+  };
+}
