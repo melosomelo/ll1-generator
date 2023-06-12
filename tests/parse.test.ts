@@ -38,6 +38,68 @@ describe("parse", () => {
     );
   });
 
+  it("arithmetic expression with two different operations", () => {
+    expect(
+      parse(
+        ["id", "+", "id", "*", "id"],
+        exampleGrammars.arithmeticExpressionGrammar
+      )
+    ).toEqual(
+      makeNode(
+        nonTerminal("E"),
+        makeNode(
+          nonTerminal("T"),
+          makeNode(nonTerminal("F"), makeNode(terminal("id"))),
+          makeNode(nonTerminal("T'"), makeNode(EMPTY_STRING))
+        ),
+        makeNode(
+          nonTerminal("E'"),
+          makeNode(terminal("+")),
+          makeNode(
+            nonTerminal("T"),
+            makeNode(nonTerminal("F"), makeNode(terminal("id"))),
+            makeNode(
+              nonTerminal("T'"),
+              makeNode(terminal("*")),
+              makeNode(nonTerminal("F"), makeNode(terminal("id"))),
+              makeNode(nonTerminal("T'"), makeNode(EMPTY_STRING))
+            )
+          ),
+          makeNode(nonTerminal("E'"), makeNode(EMPTY_STRING))
+        )
+      )
+    );
+  });
+
+  it("arithmetic expression between parenthesis", () => {
+    expect(
+      parse(["(", "id", ")"], exampleGrammars.arithmeticExpressionGrammar)
+    ).toEqual(
+      makeNode(
+        nonTerminal("E"),
+        makeNode(
+          nonTerminal("T"),
+          makeNode(
+            nonTerminal("F"),
+            makeNode(terminal("(")),
+            makeNode(
+              nonTerminal("E"),
+              makeNode(
+                nonTerminal("T"),
+                makeNode(nonTerminal("F"), makeNode(terminal("id"))),
+                makeNode(nonTerminal("T'"), makeNode(EMPTY_STRING))
+              ),
+              makeNode(nonTerminal("E'"), makeNode(EMPTY_STRING))
+            ),
+            makeNode(terminal(")"))
+          ),
+          makeNode(nonTerminal("T'"), makeNode(EMPTY_STRING))
+        ),
+        makeNode(nonTerminal("E'"), makeNode(EMPTY_STRING))
+      )
+    );
+  });
+
   it("arithmetic expression with one operation", () => {
     expect(
       parse(["id", "+", "id"], exampleGrammars.arithmeticExpressionGrammar)
