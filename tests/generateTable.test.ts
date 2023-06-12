@@ -1,10 +1,6 @@
-import { describe, it, expect, beforeEach } from "@jest/globals";
-import {
-  EMPTY_STRING,
-  END_OF_INPUT,
-  nonTerminal,
-  terminal,
-} from "../src/symbols";
+import { describe, it, expect } from "@jest/globals";
+import { EMPTY_STRING, END_OF_INPUT } from "../src/symbols";
+import { nonTerminal, terminal } from "../src/util";
 import buildGrammar from "../src/buildGrammar";
 import generateParseTable from "../src/generateTable";
 import LL1ConflictError from "../src/errors/LL1ConflictError";

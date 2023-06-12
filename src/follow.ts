@@ -1,7 +1,7 @@
 import InvalidGrammarError from "./errors/InvalidGrammarError";
 import firstSet, { calculateFirstSetForString } from "./first";
-import { EMPTY_STRING, END_OF_INPUT, isGrammarSymbol } from "./symbols";
-import { sumSizesOfSetsInMap, union } from "./util";
+import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
+import { sumSizesOfSetsInMap, union, isGrammarSymbol } from "./util";
 
 /**
  * Calculates the Follow set for all non-terminals of the grammar G.

@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import firstSet from "../src/first";
 import buildGrammar from "../src/buildGrammar";
-import { EMPTY_STRING, nonTerminal, terminal } from "../src/symbols";
+import { EMPTY_STRING } from "../src/symbols";
+import { nonTerminal, terminal } from "../src/util";
 
 describe("firstSet", () => {
   it("First(X) must contain x when X->x... and x is terminal", () => {

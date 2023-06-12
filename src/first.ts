@@ -1,7 +1,6 @@
 import InvalidGrammarError from "./errors/InvalidGrammarError";
-import { isGrammarSymbol } from "./symbols";
 import { EMPTY_STRING } from "./symbols";
-import { sumSizesOfSetsInMap, union } from "./util";
+import { sumSizesOfSetsInMap, union, isGrammarSymbol } from "./util";
 
 /**
  * Calculates the First set for all non-terminals in the grammar G.

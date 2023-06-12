@@ -1,5 +1,6 @@
 import buildGrammar from "../src/buildGrammar";
-import { EMPTY_STRING, nonTerminal, terminal } from "../src/symbols";
+import { EMPTY_STRING } from "../src/symbols";
+import { nonTerminal, terminal } from "../src/util";
 
 export const emptyGrammar = buildGrammar().setStartingSymbol("A").build();
 

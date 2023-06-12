@@ -1,14 +1,7 @@
 import LL1ParseError from "./errors/LL1ParseError";
 import generateParseTable from "./generateTable";
-import {
-  EMPTY_STRING,
-  END_OF_INPUT,
-  isGrammarSymbol,
-  isNonTerminal,
-  isTerminal,
-  nonTerminal,
-} from "./symbols";
-import { makeNode } from "./util";
+import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
+import { makeNode, isGrammarSymbol, isNonTerminal, nonTerminal } from "./util";
 
 /**
  * Parses a list of tokens based on a parsing table. As of is right now,

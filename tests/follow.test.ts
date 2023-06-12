@@ -1,12 +1,8 @@
-import { describe, it, expect, beforeEach } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import buildGrammar from "../src/buildGrammar";
 import followSet from "../src/follow";
-import {
-  EMPTY_STRING,
-  END_OF_INPUT,
-  nonTerminal,
-  terminal,
-} from "../src/symbols";
+import { EMPTY_STRING, END_OF_INPUT } from "../src/symbols";
+import { nonTerminal, terminal } from "../src/util";
 
 describe("followSet", () => {
   it("Follow(S) must contain END_OF_INPUT (S is starting symbol)", () => {

@@ -1,9 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
 import parse from "../src/parse";
-import { EMPTY_STRING, nonTerminal, terminal } from "../src/symbols";
+import { EMPTY_STRING } from "../src/symbols";
 import * as exampleGrammars from "./exampleGrammars";
 import LL1ParseError from "../src/errors/LL1ParseError";
-import { makeNode } from "../src/util";
+import { makeNode, nonTerminal, terminal } from "../src/util";
 
 describe("parse", () => {
   it("grammar allows empty input string", () => {

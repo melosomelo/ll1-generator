@@ -1,5 +1,5 @@
 import InvalidGrammarError from "./errors/InvalidGrammarError";
-import { isGrammarSymbol } from "./symbols";
+import { isGrammarSymbol } from "./util";
 
 export default function buildGrammar(): GrammarBuilder {
   return {
