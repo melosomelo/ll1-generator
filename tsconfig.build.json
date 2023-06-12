@@ -6,8 +6,6 @@
     "outDir": "build",
     "module": "UMD",
     "target": "es6",
-    "moduleResolution": "node",
-    "declarationDir": "build/types",
-    "declarationMap": true
+    "moduleResolution": "node"
   }
 }
