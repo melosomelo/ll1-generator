@@ -1,6 +1,12 @@
 import LL1ParseError from "./errors/LL1ParseError";
 import generateParseTable from "./generateTable";
 import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
+import type {
+  CFGrammar,
+  GrammarSymbol,
+  ParseTable,
+  ParseTreeNode,
+} from "./types";
 import { makeNode, isGrammarSymbol, isNonTerminal, nonTerminal } from "./util";
 
 /**

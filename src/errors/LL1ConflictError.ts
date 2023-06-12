@@ -1,3 +1,5 @@
+import type { RHSSymbol } from "../types";
+
 export default class LL1ConflictError extends Error {
   public nonTerminal: string;
   public terminal: string | Symbol;

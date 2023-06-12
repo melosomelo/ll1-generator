@@ -2,6 +2,7 @@ import LL1ConflictError from "./errors/LL1ConflictError";
 import firstSet, { calculateFirstSetForString } from "./first";
 import followSet from "./follow";
 import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
+import type { CFGrammar, ParseTable, RHSSymbol } from "./types";
 
 export default function generateParseTable(
   G: CFGrammar,

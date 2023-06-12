@@ -1,6 +1,7 @@
 import InvalidGrammarError from "./errors/InvalidGrammarError";
 import firstSet, { calculateFirstSetForString } from "./first";
 import { EMPTY_STRING, END_OF_INPUT } from "./symbols";
+import type { CFGrammar, RHSSymbol } from "./types";
 import { sumSizesOfSetsInMap, union, isGrammarSymbol } from "./util";
 
 /**

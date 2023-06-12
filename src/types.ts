@@ -1,4 +1,4 @@
-interface GrammarSymbol {
+export interface GrammarSymbol {
   type: "TERMINAL" | "NON_TERMINAL";
   value: string;
 }
@@ -7,12 +7,12 @@ interface GrammarSymbol {
  * Any symbol that can appear on the right-hand side
  * of a grammar production.
  */
-type RHSSymbol = GrammarSymbol | Symbol;
+export type RHSSymbol = GrammarSymbol | Symbol;
 
 /**
  * A context-free grammar.
  */
-interface CFGrammar {
+export interface CFGrammar {
   startingSymbol: string;
   terminals: Set<string>;
   nonTerminals: Set<string>;
@@ -26,14 +26,14 @@ interface CFGrammar {
  * element is a simple string. The right-hand side, on the
  * other hand, is any sequence of grammar/special symbols.
  */
-type CFProduction = [string, Array<RHSSymbol>];
+export type CFProduction = [string, Array<RHSSymbol>];
 
-type ParseTable = Record<
+export type ParseTable = Record<
   string,
-  Record<string | unique symbol, Array<RHSSymbol> | null>
+  Record<string | symbol, Array<RHSSymbol> | null>
 >;
 
-interface GrammarBuilder {
+export interface GrammarBuilder {
   startingSymbol: null | string;
   terminals: Set<string>;
   nonTerminals: Set<string>;
@@ -43,7 +43,7 @@ interface GrammarBuilder {
   build(): CFGrammar;
 }
 
-interface ParseTreeNode {
+export interface ParseTreeNode {
   value: RHSSymbol;
   children: Array<ParseTreeNode>;
 }

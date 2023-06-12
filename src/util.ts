@@ -1,3 +1,5 @@
+import type { GrammarSymbol, ParseTreeNode, RHSSymbol } from "./types";
+
 export function sumSizesOfSetsInMap(map: Map<string, Set<any>>): number {
   return Array.from(map.values()).reduce(
     (prev, current) => prev + current.size,
