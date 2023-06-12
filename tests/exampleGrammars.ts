@@ -51,3 +51,26 @@ export const arithmeticExpressionGrammar = buildGrammar()
   .addProduction("F", [terminal("("), nonTerminal("E"), terminal(")")])
   .addProduction("F", [terminal("id")])
   .build();
+
+export const luaIfStatement = buildGrammar()
+  .setStartingSymbol("<if_statement>")
+  .addProduction("<if_statement>", [
+    terminal("if"),
+    terminal("boolean_exp"),
+    terminal("then"),
+    terminal("statements"),
+    nonTerminal("<elseif>"),
+    nonTerminal("<else>"),
+    terminal("end"),
+  ])
+  .addProduction("<elseif>", [
+    terminal("elseif"),
+    terminal("boolean_exp"),
+    terminal("then"),
+    terminal("statements"),
+    nonTerminal("<elseif>"),
+  ])
+  .addProduction("<elseif>", [EMPTY_STRING])
+  .addProduction("<else>", [EMPTY_STRING])
+  .addProduction("<else>", [terminal("else"), terminal("statements")])
+  .build();
