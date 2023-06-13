@@ -120,3 +120,5 @@ console.log(first["B"]); // { b }
 const follow = followSet(G, first);
 console.log(follow["A"]); // { b }
 ```
+
+## Generating parsing tables
