@@ -3,9 +3,9 @@
 This package contains the core classes to perform LL(1) parsing operations.
 With it, you can:
 
-- [Define context-free grammars in a readable way](#defining-context-free-grammars).
-- [Calculate First/Follow sets](#calculating-first-and-follow-sets).
-- [Generate parsing tables](#generating-parsing-tables).
+- [Define context-free grammars in a readable way](#defining-context-free-grammars)
+- [Calculate First/Follow sets](#calculating-first-and-follow-sets)
+- [Generate parsing tables](#generating-parsing-tables)
 - [Generate parsing trees for strings in the language defined by your grammar.](#generating-parsing-trees)
 
 ## Defining context-free grammars
@@ -83,3 +83,30 @@ represents the empty string, usually denoted by the greek letter epsilon.
 One thing, the grammar builder **does not** check for repeated productions. Be careful with that,
 I haven't tested what may happen if you add repeated productions and then attempt to generate
 a parsing table, parsing tree, etc.
+
+## Calculating First and Follow sets
+
+Calculating First and Follow sets for a grammar is very straightforward.
+You do it via the functions `firstSet`
+and `followSet`. Both accept a `CFGrammar` as their parameter and return an object whose keys
+are all the non-terminals from the grammar and whose corresponding values JavaScript `Set` objects,
+which can hold JavaScript strings (for non-terminals) and Symbols (for `EMPTY_STRING` and `END_OF_FILE`).
+
+The `followSet` function accepts an optional second parameter, which is the First set of the grammar in question.
+If you do not provide it, then `firstSet` is called internally. This is useful if you're calling these functions
+individually and in sequence and you want to optimize a bit.
+
+```typescript
+const G = buildGrammar()
+  .addProduction("A", [terminal("a"), nonTerminal("A"), nonTerminal("B")])
+  .addProduction("A", [EMPTY_STRING])
+  .addProduction("B", [terminal("b"), nonTerminal("B")])
+  .setStartingSymbol("A")
+  .build();
+
+const first = firstSet(G);
+console.log(first["A"]); // { a, EMPTY_STRING }
+console.log(first["B"]); // { b }
+const follow = followSet(G, first);
+console.log(follow["A"]); // { b }
+```
