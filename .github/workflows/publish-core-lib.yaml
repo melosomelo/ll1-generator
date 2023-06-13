@@ -6,18 +6,21 @@ on:
       - "main"
     paths:
       - "core/**"
+defaults:
+  run:
+    working-directory: core
 jobs:
   run:
     name: "Run tests and deploy to npm"
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout code"
-        uses: actions/checkout@v3
-      - name: "Install Node"
-        uses: actions/setup-node@v2.5.2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v2.5.2
         with:
           node-version: 18.x
-      - name: "Install dependencies"
-        run: cd core && npm install
-      - name: "Run unit tests"
-        run: cd core && npm test
+          registry-url: "https://registry.npmjs.org"
+      - run: npm install
+      - run: npm test
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

@@ -123,4 +123,4 @@ console.log(follow["A"]); // { b }
 
 ## Generating parsing tables
 
-## Generating parsing trees
+## Generating parse trees
