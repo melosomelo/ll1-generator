@@ -1,0 +1,14 @@
+name: "publish-core-lib"
+run-name: "Deploys ll1-generator-core to npm"
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "core/**"
+jobs:
+  run-unit-tests:
+    name: "Run unit tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
