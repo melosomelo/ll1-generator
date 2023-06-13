@@ -77,6 +77,8 @@ process by calling the `build` function, which returns a `CFGrammar` object.
 
 The `terminal` and `nonTerminal` functions are mere utilities which this library
 also exports. You can use object literals to defined `GrammarSymbol`s if you want to.
+The `EMPTY_STRING` is a symbol that is also exported by this library, which (unsurprisingly)
+represents the empty string, usually denoted by the greek letter epsilon.
 
 One thing, the grammar builder **does not** check for repeated productions. Be careful with that,
 I haven't tested what may happen if you add repeated productions and then attempt to generate
