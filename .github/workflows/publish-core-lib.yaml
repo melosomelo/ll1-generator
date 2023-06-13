@@ -7,8 +7,19 @@ on:
     paths:
       - "core/**"
 jobs:
-  run-unit-tests:
-    name: "Run unit tests"
+  run:
+    name: "Run tests and deploy to npm"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: "Checkout code"
+        uses: actions/checkout@v3
+      - name: "cd into core/"
+        run: cd core
+      - name: "Install Node"
+        uses: actions/setup-node@v2.5.2
+        with:
+          node-version: 18.x
+      - name: "Install dependencies"
+        run: npm install
+      - name: "Run unit tests"
+        run: npm test
