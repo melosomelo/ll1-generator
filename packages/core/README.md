@@ -1,12 +1,14 @@
 # LL1 Generator Core
 
 This package contains the core classes to perform LL(1) parsing operations.
-With it, you can:
+
+## Table of contents
 
 - [Define context-free grammars in a readable way](#defining-context-free-grammars)
 - [Calculate First/Follow sets](#calculating-first-and-follow-sets)
 - [Generate parsing tables](#generating-parsing-tables)
-- [Generate parsing trees for strings in the language defined by your grammar.](#generating-parsing-trees)
+- [Generate parsing trees for strings in the language defined by your grammar](#generating-parsing-trees)
+- [Limitations](#limitations)
 
 ## Defining context-free grammars
 
@@ -110,3 +112,13 @@ console.log(first["B"]); // { b }
 const follow = followSet(G, first);
 console.log(follow["A"]); // { b }
 ```
+
+## Limitations
+
+As of now, the main limitation of this library is that it does not support parsing of languages
+that use a regular grammar to describe its token (i.e., real world parsing). Currently,
+the `parse` function just accepts a list of tokens and there is not explicit support anywhere
+for those tokens carrying their value.
+
+I plan on adding support for this on the next major version. This will also probably pave the way for
+automatic generation of LL(1) parsers.
