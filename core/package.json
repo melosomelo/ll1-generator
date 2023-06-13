@@ -6,6 +6,9 @@
   "repository": "https://github.com/melosomelo/ll1-generator.git",
   "author": "melosomelo <mateusmelornrn@gmail.com>",
   "license": "MIT",
+  "files": [
+    "build/**/*"
+  ],
   "devDependencies": {
     "@jest/globals": "^29.5.0",
     "@tsconfig/node18": "^2.0.1",
