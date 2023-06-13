@@ -75,6 +75,9 @@ object that is initialized by the `buildGrammar` entrypoint. The terminals and n
 that you define in your `addProduction` calls are automatically picked up. You finish the
 process by calling the `build` function, which returns a `CFGrammar` object.
 
+The `terminal` and `nonTerminal` functions are mere utilities which this library
+also exports. You can use object literals to defined `GrammarSymbol`s if you want to.
+
 One thing, the grammar builder **does not** check for repeated productions. Be careful with that,
 I haven't tested what may happen if you add repeated productions and then attempt to generate
 a parsing table, parsing tree, etc.
