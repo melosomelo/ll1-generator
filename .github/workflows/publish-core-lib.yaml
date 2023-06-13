@@ -13,15 +13,11 @@ jobs:
     steps:
       - name: "Checkout code"
         uses: actions/checkout@v3
-      - name: "cd into core/"
-        run: cd core && ls
-      - run: pwd
-      - run: ls
       - name: "Install Node"
         uses: actions/setup-node@v2.5.2
         with:
           node-version: 18.x
       - name: "Install dependencies"
-        run: npm install
+        run: cd core && npm install
       - name: "Run unit tests"
-        run: npm test
+        run: cd core && npm test
