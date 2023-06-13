@@ -1,7 +1,7 @@
 {
   "name": "ll1-generator-core",
   "description": "Core operations for working with LL(1) grammar operations like parser, tree and parsing table generation.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "repository": "https://github.com/melosomelo/ll1-generator.git",
   "author": "melosomelo <mateusmelornrn@gmail.com>",
