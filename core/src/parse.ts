@@ -25,9 +25,18 @@ import { makeNode, isGrammarSymbol, isNonTerminal, nonTerminal } from "./util";
 export default function parse(
   tokens: Array<string>,
   G: CFGrammar,
-  parseTableParam?: ParseTable
+  generateParseTableReturnParam?: {
+    table: ParseTable;
+    conflicts: Array<[string, string]>;
+  }
 ): ParseTreeNode {
-  const parseTable = parseTableParam ?? generateParseTable(G);
+  const generateTableResult =
+    generateParseTableReturnParam ?? generateParseTable(G);
+  if (generateTableResult.conflicts.length > 0)
+    throw new LL1ParseError(
+      "LL(1) parsing cannot be done because your grammar is not LL(1)."
+    );
+  const parseTable = generateTableResult.table;
   const root = makeNode(nonTerminal(G.startingSymbol));
   const stack: Array<Symbol | ParseTreeNode> = [END_OF_INPUT, root];
   const input = [...tokens, END_OF_INPUT];
@@ -39,15 +48,17 @@ export default function parse(
     // Check to see if there is a prediction in table. If
     // there is, apply it and change the stack. If not, throw an error.
     if (isNonTerminal(stackTop.value)) {
-      const prediction =
+      const possiblePredictions =
         parseTable[(stackTop.value as GrammarSymbol).value][currentToken];
-      if (prediction === null) {
+      if (possiblePredictions === null) {
         const errorMsg =
           currentToken === END_OF_INPUT
             ? "Unexpected end of input"
             : `Unexpected token '${String(currentToken)}'`;
         throw new LL1ParseError(errorMsg);
       }
+      // We know there is only one valid production because there are no conflicts.
+      const prediction = possiblePredictions[0];
       const nodes = prediction.map((symbol) => makeNode(symbol));
       stackTop.children.push(...nodes);
       stack.pop();

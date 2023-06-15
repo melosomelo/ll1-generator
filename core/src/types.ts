@@ -30,7 +30,7 @@ export type CFProduction = [string, Array<RHSSymbol>];
 
 export type ParseTable = Record<
   string,
-  Record<string | symbol, Array<RHSSymbol> | null>
+  Record<string | symbol, Array<Array<RHSSymbol>> | null>
 >;
 
 export interface GrammarBuilder {

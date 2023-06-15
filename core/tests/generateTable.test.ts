@@ -16,27 +16,24 @@ describe("generateParseTable", () => {
     [
       "grammar with only one epsilon-rule",
       exampleGrammars.emptyLanguageGrammar,
-      { A: { [END_OF_INPUT]: [EMPTY_STRING] } },
+      { A: { [END_OF_INPUT]: [[EMPTY_STRING]] } },
     ],
     [
       "grammar without epsilon-rules (taken from parsing techniques pg.240)",
       exampleGrammars.grammarWithoutEpsilonRules,
       {
         S: {
-          "!": [nonTerminal("F"), nonTerminal("S")],
-          "?": [nonTerminal("Q")],
+          "!": [[nonTerminal("F"), nonTerminal("S")]],
+          "?": [[nonTerminal("Q")]],
           "(": [
-            terminal("("),
-            nonTerminal("S"),
-            terminal(")"),
-            nonTerminal("S"),
+            [terminal("("), nonTerminal("S"), terminal(")"), nonTerminal("S")],
           ],
           ")": null,
           STRING: null,
           [END_OF_INPUT]: null,
         },
         Q: {
-          "?": [terminal("?"), terminal("STRING")],
+          "?": [[terminal("?"), terminal("STRING")]],
           "!": null,
           "(": null,
           ")": null,
@@ -44,7 +41,7 @@ describe("generateParseTable", () => {
           STRING: null,
         },
         F: {
-          "!": [terminal("!"), terminal("STRING")],
+          "!": [[terminal("!"), terminal("STRING")]],
           "(": null,
           ")": null,
           "?": null,
@@ -58,15 +55,15 @@ describe("generateParseTable", () => {
       exampleGrammars.grammarWithoutEpsilonRules2,
       {
         A: {
-          a: [terminal("a"), nonTerminal("A")],
-          b: [nonTerminal("B")],
-          c: [nonTerminal("B")],
+          a: [[terminal("a"), nonTerminal("A")]],
+          b: [[nonTerminal("B")]],
+          c: [[nonTerminal("B")]],
           [END_OF_INPUT]: null,
         },
         B: {
           a: null,
-          b: [terminal("b"), nonTerminal("B")],
-          c: [terminal("c")],
+          b: [[terminal("b"), nonTerminal("B")]],
+          c: [[terminal("c")]],
           [END_OF_INPUT]: null,
         },
       },
@@ -76,13 +73,13 @@ describe("generateParseTable", () => {
       exampleGrammars.grammarWithoutEpsilonRules3,
       {
         S: {
-          a: [terminal("a"), nonTerminal("B")],
+          a: [[terminal("a"), nonTerminal("B")]],
           b: null,
           [END_OF_INPUT]: null,
         },
         B: {
-          a: [terminal("a"), nonTerminal("B"), terminal("b")],
-          b: [terminal("b")],
+          a: [[terminal("a"), nonTerminal("B"), terminal("b")]],
+          b: [[terminal("b")]],
           [END_OF_INPUT]: null,
         },
       },
@@ -96,30 +93,30 @@ describe("generateParseTable", () => {
           "*": null,
           "+": null,
           [END_OF_INPUT]: null,
-          id: [nonTerminal("T"), nonTerminal("E'")],
-          "(": [nonTerminal("T"), nonTerminal("E'")],
+          id: [[nonTerminal("T"), nonTerminal("E'")]],
+          "(": [[nonTerminal("T"), nonTerminal("E'")]],
         },
         "E'": {
           "(": null,
           "*": null,
           id: null,
-          "+": [terminal("+"), nonTerminal("T"), nonTerminal("E'")],
-          ")": [EMPTY_STRING],
-          [END_OF_INPUT]: [EMPTY_STRING],
+          "+": [[terminal("+"), nonTerminal("T"), nonTerminal("E'")]],
+          ")": [[EMPTY_STRING]],
+          [END_OF_INPUT]: [[EMPTY_STRING]],
         },
         T: {
-          id: [nonTerminal("F"), nonTerminal("T'")],
-          "(": [nonTerminal("F"), nonTerminal("T'")],
+          id: [[nonTerminal("F"), nonTerminal("T'")]],
+          "(": [[nonTerminal("F"), nonTerminal("T'")]],
           ")": null,
           "*": null,
           "+": null,
           [END_OF_INPUT]: null,
         },
         "T'": {
-          "+": [EMPTY_STRING],
-          "*": [terminal("*"), nonTerminal("F"), nonTerminal("T'")],
-          ")": [EMPTY_STRING],
-          [END_OF_INPUT]: [EMPTY_STRING],
+          "+": [[EMPTY_STRING]],
+          "*": [[terminal("*"), nonTerminal("F"), nonTerminal("T'")]],
+          ")": [[EMPTY_STRING]],
+          [END_OF_INPUT]: [[EMPTY_STRING]],
           "(": null,
           id: null,
         },
@@ -128,32 +125,56 @@ describe("generateParseTable", () => {
           "*": null,
           "+": null,
           [END_OF_INPUT]: null,
-          id: [terminal("id")],
-          "(": [terminal("("), nonTerminal("E"), terminal(")")],
+          id: [[terminal("id")]],
+          "(": [[terminal("("), nonTerminal("E"), terminal(")")]],
         },
       },
     ],
   ])("parse table for %s", (_, G, expectedTable) => {
-    expect(generateParseTable(G)).toEqual(expectedTable);
+    expect(generateParseTable(G).table).toEqual(expectedTable);
   });
-  it("should throw when grammar isn't left factored", () => {
+  it("should return conflicts when grammar isn't left-factored", () => {
     const G = buildGrammar()
       .setStartingSymbol("A")
       .addProduction("A", [terminal("a"), terminal("b")])
       .addProduction("A", [terminal("a"), terminal("c")])
       .build();
-    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
+    const { table, conflicts } = generateParseTable(G);
+    expect(table).toEqual({
+      A: {
+        a: [
+          [terminal("a"), terminal("b")],
+          [terminal("a"), terminal("c")],
+        ],
+        b: null,
+        c: null,
+        [END_OF_INPUT]: null,
+      },
+    });
+    expect(conflicts.length).toEqual(1);
+    expect(conflicts[0]).toEqual(["A", "a"]);
   });
-  it("should throw when grammar is left-recursive", () => {
+  it("should return conflicts when grammar is left recursive", () => {
     const G = buildGrammar()
       .setStartingSymbol("A")
       .addProduction("A", [nonTerminal("A"), terminal("a")])
       .addProduction("A", [terminal("b")])
       .addProduction("A", [terminal("c")])
       .build();
-    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
+    const { table, conflicts } = generateParseTable(G);
+    expect(table).toEqual({
+      A: {
+        a: null,
+        b: [[nonTerminal("A"), terminal("a")], [terminal("b")]],
+        c: [[nonTerminal("A"), terminal("a")], [terminal("c")]],
+        [END_OF_INPUT]: null,
+      },
+    });
+    expect(conflicts.length).toEqual(2);
+    expect(conflicts[0]).toEqual(["A", "b"]);
+    expect(conflicts[1]).toEqual(["A", "c"]);
   });
-  it("should throw when a is both in First(A) and Follow(A) and A has a nullable production", () => {
+  it("should return conflicts when a is both in First(A) and Follow(A) and A has a nullable production", () => {
     const G = buildGrammar()
       .setStartingSymbol("A")
       .addProduction("A", [terminal("a")])
@@ -161,6 +182,25 @@ describe("generateParseTable", () => {
       .addProduction("A", [nonTerminal("B")])
       .addProduction("B", [EMPTY_STRING])
       .build();
-    expect(() => generateParseTable(G)).toThrow(LL1ConflictError);
+    const { table, conflicts } = generateParseTable(G);
+    expect(table).toEqual({
+      A: {
+        a: [[terminal("a")], [nonTerminal("B")]],
+        x: null,
+        [END_OF_INPUT]: [[nonTerminal("B")]],
+      },
+      X: {
+        a: null,
+        x: [[terminal("x"), nonTerminal("A"), terminal("a")]],
+        [END_OF_INPUT]: null,
+      },
+      B: {
+        a: [[EMPTY_STRING]],
+        x: null,
+        [END_OF_INPUT]: [[EMPTY_STRING]],
+      },
+    });
+    expect(conflicts.length).toEqual(1);
+    expect(conflicts[0]).toEqual(["A", "a"]);
   });
 });
