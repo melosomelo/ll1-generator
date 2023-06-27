@@ -1,4 +1,7 @@
-<script setup></script>
+<script setup>
+import TextArea from '../common/TextArea.vue'
+import Button from '../common/Button.vue'
+</script>
 
 <template>
   <main class="container">
@@ -23,6 +26,10 @@
       <p>Use the ε character to represent the empty string.</p>
       <p>Don't specify a rule with the end of input symbol.</p>
     </div>
+    <form class="form">
+      <TextArea></TextArea>
+      <Button>Generate</Button>
+    </form>
   </main>
 </template>
 
@@ -30,6 +37,7 @@
 .container {
   width: 90%;
   margin: 0 auto;
+  margin-bottom: 6rem;
   max-width: 600px;
 
   text-align: center;
@@ -57,13 +65,15 @@
 
 h2 {
   margin: 4rem 0;
-  font-size: 2.2rem;
   font-weight: 600;
 }
 
+.rules {
+  margin-bottom: 4rem;
+}
 .rules__title {
   font-size: var(--subtitle);
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 2rem;
 }
 
@@ -73,5 +83,19 @@ h2 {
 }
 .rules > p + p {
   margin-top: 1.7rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form :deep(textarea) {
+  height: 450px;
+  margin-bottom: 2.6rem;
+}
+
+.form :deep(button) {
+  align-self: flex-end;
 }
 </style>

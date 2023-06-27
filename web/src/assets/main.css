@@ -2,6 +2,7 @@
 
 :root {
   --h1: 3rem;
+  --h2: 2.2rem;
   --p: 1.6rem;
   --span: 1.5rem;
   --subtitle: 1.8rem;
@@ -19,6 +20,12 @@ html {
   font-size: 62.5%;
 }
 
+body,
+textarea,
+button {
+  font-family: 'Inter', sans-serif;
+}
+
 body {
   color: white;
   background: linear-gradient(
@@ -32,8 +39,6 @@ body {
   background-repeat: no-repeat;
   background-size: 100%;
 
-  font-family: 'Inter', sans-serif;
-
   width: 100vw;
   overflow-x: hidden;
   min-height: 100vh;
@@ -45,6 +50,10 @@ body {
 
 h1 {
   font-size: var(--h1);
+}
+
+h2 {
+  font-size: var(--h2);
 }
 
 p {
@@ -64,6 +73,7 @@ a:visited {
 @media screen and (min-width: 600px) {
   :root {
     --h1: 4.5rem;
+    --h2: 3rem;
     --p: 1.8rem;
     --span: 1.6rem;
     --subtitle: 2rem;
