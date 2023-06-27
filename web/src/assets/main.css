@@ -1,35 +1,71 @@
-@import './base.css';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+:root {
+  --h1: 3rem;
+  --p: 1.6rem;
+  --span: 1.5rem;
+  --subtitle: 1.8rem;
+}
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  color: white;
+  background: linear-gradient(
+      131deg,
+      rgba(111, 63, 188, 0.2) 0%,
+      rgba(157, 97, 178, 0.2) 37.5%,
+      rgba(93, 54, 157, 0.2) 63.54%,
+      rgba(86, 10, 208, 0.2) 100%
+    ),
+    #0e0d12;
+  background-repeat: no-repeat;
+  background-size: 100%;
+
+  font-family: 'Inter', sans-serif;
+
+  width: 100vw;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+}
 
-  font-weight: normal;
+h1 {
+  font-size: var(--h1);
+}
+
+p {
+  font-size: var(--p);
+}
+
+span {
+  font-size: var(--span);
 }
 
 a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+a:visited {
+  color: #a37ff0;
+  text-decoration: underline;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+@media screen and (min-width: 600px) {
+  :root {
+    --h1: 4.5rem;
+    --p: 1.8rem;
+    --span: 1.6rem;
+    --subtitle: 2rem;
   }
 }
